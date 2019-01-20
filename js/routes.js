@@ -6,7 +6,6 @@ var routes = [
     url: './index.html',
     on: {
      pageInit: function (e, page) {
-       console.log("de vuelta");
        /* Cerrar Pantalla de Login si ya nos conectamos */
        firebase.auth().onAuthStateChanged(function(user) {
         if (user && localStorage.vecino) {
