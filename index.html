@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-status-bar-style" content="default">
+ <meta name="theme-color" content="#2196f3">
+ <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap:">
+ <script src="https://www.gstatic.com/firebasejs/4.9.0/firebase.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-auth.js"></script>
+ <title>Comunidad</title>
+ <link rel="stylesheet" href="css/framework7.css">
+ <link rel="stylesheet" href="css/app.css">
+ <link rel="apple-touch-icon" href="img/f7-icon-square.png">
+ <link rel="icon" href="img/f7-icon.png">
+</head>
+<body>
+ <div id="app">
+  <div class="statusbar"></div>
+  <div class="view view-main view-init ios-edges" data-url="/">
+   <div class="page">
+    <div class="navbar">
+     <div class="navbar-inner">
+      <div class="left">
+       <a href="#" class="link icon-only panel-open" data-panel="left">
+       <i class="icon f7-icons">gear</i>
+       <!--<i class="icon f7-icons ios-only">gear</i>
+       <i class="icon material-icons md-only">gear</i>-->
+       </a>
+      </div>
+      <div class="title sliding">Comunidad</div>
+      <div class="right">
+       <a class="link icon-only login-screen-open" data-login-screen=".my-login-screen">
+       <i class="icon f7-icons">logout</i>
+       <!--<i class="icon f7-icons ios-only">logout</i>
+       <i class="icon material-icons md-only">logout</i>-->
+       </a>
+      </div>
+     </div>
+    </div>
+    <div class="toolbar tabbar tabbar-labels toolbar-bottom-md">
+     <div class="toolbar-inner">
+      <a class="tab-link quitar" href="/insertarIngreso/">
+      <!--<i class="icon f7-icons ios-only">money_euro</i>-->
+      <i class="icon f7-icons">money_euro</i>
+      <!--<i class="icon material-icons md-only">money</i>-->
+      <span class="tabbar-label">Insertar Cuota</span>
+      </a>
+      <a class="tab-link" href="/notificaciones/">
+      <!--<i class="icon f7-icons ios-only">chat</i>-->
+      <i class="icon f7-icons">chat</i>
+      <!--<i class="icon material-icons md-only">chat</i>-->
+      <span class="tabbar-label">Notificaciones</span>
+      </a>
+      <a class="tab-link quitar" href="/insertarGasto/">
+      <!--<i class="icon f7-icons ios-only">money_euro</i>-->
+      <i class="icon f7-icons">money_euro</i>
+      <!--<i class="icon material-icons md-only">money_euro</i>-->
+      <span class="tabbar-label">Insertar Gasto</span>
+      </a>
+      <a class="tab-link" href="/documentos/">
+      <i class="icon f7-icons">document</i>
+      <span class="tabbar-label">Documentos</span>
+      </a>
+     </div>
+    </div>
+    <div class="page-content">
+     <img src="img/Comunidad.jpg">
+     <div class="card">
+      <div class="card-header centrado letra bg-color-blue">Ingresos</div>
+      <div class="card-content numero" id="totalIngresos"></div>
+      <div class="card-footer">Principalmente cuotas<a href="/ingresos/" class="link">Detalle</a></div>
+   	 </div>
+     <div class="card">
+      <div class="card-header centrado letra bg-color-blue">Saldo</div>
+      <div class="card-content numero" id="saldo"></div>
+      <div class="card-footer centrado">Ingresos - Gastos + Año anterior</div>
+     </div>
+     <div class="card">
+      <div class="card-header centrado letra bg-color-blue">Gastos</div>
+      <div class="card-content numero" id="totalGastos"></div>
+      <div class="card-footer">Luz, agua, etc...<a href="/gastos/" class="link">Detalle</a></div>
+     </div>
+    </div>
+    <div class="login-screen my-login-screen modal-in">
+    <div class="view">
+     <div class="page">
+      <div class="page-content login-screen-content">
+       <div class="login-screen-title">Conectarse</div>
+       <form>
+       <div class="list">
+        <ul>
+         <li class="item-content item-input">
+          <div class="item-inner">
+           <div class="item-title item-label">Usuario</div>
+           <div class="item-input-wrap">
+            <input type="text" name="username" id="username" placeholder="Usuario">
+            <span class="input-clear-button"></span>
+           </div>
+          </div>
+         </li>
+         <li class="item-content item-input">
+          <div class="item-inner">
+           <div class="item-title item-label">Contraseña</div>
+           <div class="item-input-wrap">
+            <input type="password" name="password" id="password" placeholder="Contraseña">
+            <span class="input-clear-button"></span>
+           </div>
+          </div>
+         </li>
+        </ul>
+       </div>
+       <div class="list">
+        <ul>
+         <li>
+          <a href="#" class="item-link list-button">Entrar</a>
+         </li>
+        </ul>
+        <div class="block-footer"></div>
+       </div>
+       </form>
+      </div>
+     </div>
+    </div>
+   </div>
+ <script src="js/framework7.js"></script>
+ <script src="js/routes.js"></script>
+ <script src="js/app.js"></script>
+</body>
+</html>

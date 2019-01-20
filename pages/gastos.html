@@ -1,0 +1,36 @@
+<div class="page">
+  <div class="navbar">
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="ios-only">Atrás</span>
+        </a>
+      </div>
+      <div class="title">Gastos</div>
+    </div>
+  </div>
+  <div class="toolbar toolbar-bottom-md tabbar tabbar-labels">
+    <div class="toolbar-inner">
+      <a href="#tab-1" onclick="javascript:$('.año2018').show();$('.año2017').hide();" class="tab-link">
+        <i class="icon f7-icons">calendar</i>
+        <span class="tabbar-label">Año Actual</span>
+      </a>
+      <a href="#tab-2" onclick="javascript:$('.año2017').show();$('.año2018').show();" class="tab-link">
+        <i class="icon f7-icons">calendar</i>
+        <span class="tabbar-label">Todos los Años</span>
+      </a>
+      <a href="#tab-3" onclick="javascript:$('.año2017').show();$('.año2018').hide();" class="tab-link">
+        <!--<i class="icon f7-icons color-white">calendar</i>Mirar el color del icono class="color-white"-->
+        <i class="icon f7-icons">calendar</i>
+        <span class="tabbar-label">Año Anterior</span>
+      </a>
+    </div>
+  </div>
+  <div class="page-content gastos">
+   <div class="list gastos">
+    <ul id="gastos">
+    </ul>
+   </div>
+  </div>
+</div>

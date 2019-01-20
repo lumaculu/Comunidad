@@ -1,0 +1,63 @@
+<div class="page">
+  <div class="navbar">
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="ios-only">Atrás</span>
+        </a>
+      </div>
+      <div class="title">Insertar Gasto</div>
+    </div>
+  </div>
+  <div class="page-content">
+
+<div class="list no-hairlines-md">
+  <ul>
+    <li class="item-content item-input">
+      <div class="item-inner">
+	  <div class="item-title item-label">Gasto</div>
+        <div class="item-input-wrap">
+          <!--<input type="text" placeholder="Gasto ID" id="gasto" required validate pattern="Agua|Luz" data-error-message="Escribe Agua, Luz, etc...">-->
+          <input type="text" placeholder="Gasto ID" readonly id="gasto" required>
+          <span class="input-clear-button"></span>
+        </div>
+      </div>
+    </li>
+    <li class="item-content item-input">
+      <div class="item-inner">
+	  <div class="item-title item-label">Año</div>
+        <div class="item-input-wrap">
+          <!--<input type="text" placeholder="Año" id="año" required validate pattern="2017|2018" data-error-message="Escribe 2017 ó 2018">-->
+          <input type="text" placeholder="Año" readonly id="año" required>
+          <span class="input-clear-button"></span>
+        </div>
+      </div>
+    </li>
+    <li class="item-content item-input">
+      <div class="item-inner">
+	  <div class="item-title item-label">Mes</div>
+        <div class="item-input-wrap">
+          <!--<input type="text" placeholder="Mes" id="mes" required validate pattern="Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic" data-error-message="Escribe Ene, Feb, etc...">-->
+          <input type="text" placeholder="Mes" readonly id="mes" required>
+          <span class="input-clear-button"></span>
+        </div>
+      </div>
+    </li>
+    <li class="item-content item-input">
+      <div class="item-inner">
+	  <div class="item-title item-label">Cantidad</div>
+        <div class="item-input-wrap">
+          <input type="text" placeholder="Cantidad" id="cantidad" required validate pattern="[0-9]*" data-error-message="Sólo números por favor!">
+          <span class="input-clear-button"></span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+<p class="row">
+    <button class="col button color-blue insertarGasto">Insertar</button>
+    <!--<button class="col button color-red borrarIngreso">Borrar</button>-->
+</p>
+  </div>
+</div>
