@@ -362,26 +362,44 @@ var routes = [
     pageInit: function (e, page) {
       refSettings.child('Gastos').on("value", function(data){
           valor = data.val().split(',');
-          $('#tito').text(valor);
+          //$('#tito').text(valor);
           console.log(valor);
-          $('.actualizarSettings').on('click', function() {
-           var gasto = $('#gasto').val();
-           if (gasto.length === 0) return;
-           $('#gasto').val('');
-           refSettings.child('Gastos').on("value", function(data){
-               valor = data.val().split(',');
-               $('.tito').text(valor);
-               console.log(valor);
-               $('.gasto').val('');
-           })
-
-           var gastoSettings = refSettings.child("Gastos");
-           gastoSettings.transaction(function(loquehay) {
-             return loquehay + ','+ gasto;
-           });
-
-          });
       })
+      refSettings.child('Saldo').on("value", function(data){
+          saldo = data.val();
+          console.log(saldo);
+          $('.saldo').text(saldo);
+            var saldoAnterior = $('.saldoAnterior a');
+            console.log(saldoAnterior);
+            saldoAnterior.attr({
+              href: '/saldoAnterior/'+saldo+'/'
+            })
+      })
+    }
+  }
+  },
+  // saldoAnterior page
+  {
+  path: '/saldoAnterior/:index/',
+  url: './pages/saldoAnterior.html',
+  on: {
+    pageInit: function (e, page) {
+     var id = page.route.params.index;
+     console.log("recibo: "+id);
+     $('#saldo').val(id);
+     $('.actualizarSaldo').on('click', function() {
+      var saldo = $('#saldo').val();
+      refSettings.update({
+       Saldo: saldo}, function(error){
+      if(error){
+       console.log("Error Insertando/Actualizando");
+       toastIconError.open();
+      }else{
+       console.log("Insertado/Actualizado correctamente");
+       toastIconActualizado.open();
+      }
+      });
+     });
     },
   }
   },
@@ -393,7 +411,6 @@ var routes = [
     pageInit: function (e, page) {
       refSettings.child('Gastos').on("value", function(data){
           valor = data.val().split(',');
-          //$$('#verGastos').text(valor);
           $('#verGastos').html('');
           for (i = 0; i < valor.length; i++) {
           $('#verGastos').append(
@@ -402,6 +419,21 @@ var routes = [
           }
           console.log(valor);
       })
+      $('.actualizarGasto').on('click', function() {
+       var gasto = $('#gasto').val();
+       if (gasto.length === 0) return;
+       $('#gasto').val('');
+       refSettings.child('Gastos').on("value", function(data){
+           valor = data.val().split(',');
+           //$('.tito').text(valor);
+           console.log(valor);
+           $('.gasto').val('');
+       })
+       var gastoSettings = refSettings.child("Gastos");
+       gastoSettings.transaction(function(loquehay) {
+         return loquehay + ','+ gasto;
+       });
+      });
     },
   }
   },
