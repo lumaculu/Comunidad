@@ -69,7 +69,30 @@ var routes = [
          "</li>");
          totalCuotas =+ valor;
          }
-         $('.año2017').hide();
+         if(claveAño < app.Años[0])
+         $('.año'+claveAño+'').hide();
+         $("[href='#tab-1']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[0]).show();
+           for(i=1; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         $("[href='#tab-2']").on('click', function(){
+           console.log(app.Años.length);
+           for(i=0; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).show();
+           }
+         })
+         $("[href='#tab-3']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[1]).show();
+           $('.año'+app.Años[0]).hide();
+           for(i=2; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         //$('.año2017').hide();
        });
        if(!totalCuotas){
         $('.list.ingresos').remove();
@@ -156,16 +179,15 @@ var routes = [
   url: './pages/insertarIngreso.html',
   on: {
    pageInit: function (e, page) {
-     refSettings.child('Gastos').on("value", function(data){
+     /*refSettings.child('Años').on("value", function(data){
          valor = data.val().split(',');
-         console.log(valor);
+         console.log(valor);*/
          self.pickerDevice = app.picker.create({
            inputEl: '#vecino',
            cols: [
              {
                textAlign: 'center',
-               values: ['001','002','003','004','011','012','013','014','021','022','023','024'],
-               cssClass: 'letrapicker'
+               values: ['001','002','003','004','011','012','013','014','021','022','023','024']
              }
            ]
          });
@@ -174,8 +196,7 @@ var routes = [
            cols: [
              {
                textAlign: 'center',
-               values: ['2019','2018'],
-               cssClass: 'letrapicker'
+               values: app.Años
              }
            ]
          });
@@ -184,12 +205,11 @@ var routes = [
            cols: [
              {
                textAlign: 'center',
-               values: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-               cssClass: 'letrapicker'
+               values: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
              }
            ]
          });
-     })
+     //})
     $('.insertarIngreso').on('click', function() {
      insIngreso();
     });
@@ -223,7 +243,30 @@ var routes = [
          "</li>");
          totalGastos =+ valor;
          }
-         $('.año2017').hide();
+         if(claveAño < app.Años[0])
+         $('.año'+claveAño+'').hide();
+         $("[href='#tab-1']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[0]).show();
+           for(i=1; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         $("[href='#tab-2']").on('click', function(){
+           console.log(app.Años.length);
+           for(i=0; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).show();
+           }
+         })
+         $("[href='#tab-3']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[1]).show();
+           $('.año'+app.Años[0]).hide();
+           for(i=2; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         //$('.año2017').hide();
        });
        if(!totalGastos){
         $('.list.gastos').remove();
@@ -315,7 +358,6 @@ var routes = [
   url: './pages/insertarGasto.html',
   on: {
    pageInit: function (e, page) {
-  // añadido ultimamente
      refSettings.child('Gastos').on("value", function(data){
          valor = data.val().split(',');
          console.log(valor);
@@ -333,7 +375,7 @@ var routes = [
            cols: [
              {
                textAlign: 'center',
-               values: ['2019','2018']
+               values: app.Años
              }
            ]
          });
@@ -347,7 +389,6 @@ var routes = [
            ]
          });
      })
-  // fin añadido ultimamente
     $('.insertarGasto').on('click', function() {
      insGasto();
     });
@@ -361,19 +402,29 @@ var routes = [
   on: {
     pageInit: function (e, page) {
       refSettings.child('Gastos').on("value", function(data){
-          valor = data.val().split(',');
-          //$('#tito').text(valor);
-          console.log(valor);
+          gastos = data.val().split(',');
+          console.log(gastos);
+          $('.gastos').text(gastos);
       })
       refSettings.child('Saldo').on("value", function(data){
           saldo = data.val();
           console.log(saldo);
           $('.saldo').text(saldo);
-            var saldoAnterior = $('.saldoAnterior a');
-            console.log(saldoAnterior);
-            saldoAnterior.attr({
-              href: '/saldoAnterior/'+saldo+'/'
-            })
+          var saldoAnterior = $('.saldoAnterior a');
+          console.log(saldoAnterior);
+          saldoAnterior.attr({
+           href: '/saldoAnterior/'+saldo+'/'
+          })
+      })
+      refSettings.child('Años').on("value", function(data){
+          años = data.val().split(',');
+          console.log(años);
+          $('.años').text(años);
+          var verAños = $('.verAños a');
+          console.log(verAños);
+          verAños.attr({
+           href: '/verAños/'+años+'/'
+          })
       })
     }
   }
@@ -389,8 +440,35 @@ var routes = [
      $('#saldo').val(id);
      $('.actualizarSaldo').on('click', function() {
       var saldo = $('#saldo').val();
+      if (!saldo) return;
       refSettings.update({
        Saldo: saldo}, function(error){
+      if(error){
+       console.log("Error Insertando/Actualizando");
+       toastIconError.open();
+      }else{
+       console.log("Insertado/Actualizado correctamente");
+       toastIconActualizado.open();
+      }
+      });
+     });
+    },
+  }
+  },
+  // verAños page
+  {
+  path: '/verAños/:index/',
+  url: './pages/verAños.html',
+  on: {
+    pageInit: function (e, page) {
+     var id = page.route.params.index;
+     console.log("recibo: "+id);
+     $('#años').val(id);
+     $('.actualizarAños').on('click', function() {
+      var años = $('#años').val();
+      if (!años) return;
+      refSettings.update({
+       Años: años}, function(error){
       if(error){
        console.log("Error Insertando/Actualizando");
        toastIconError.open();

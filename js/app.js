@@ -114,7 +114,7 @@ $('.login-screen-content .list-button').on('click', function(){
 });
 // Datos iniciales
 function datosIniciales(){
-  //Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente
+  //Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente ademas de años a mostrar
   refComunidad.orderByKey().startAt("Z").on("value", function(data){
    data.forEach(function(child){
     var clave = child.key;
@@ -131,7 +131,12 @@ function datosIniciales(){
   }, function (errorObject) {
     console.log("Fallo leyendo: " + errorObject.code);
   });
-  //Fin de Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente
+  refSettings.child('Años').on("value", function(data){
+   app.Años = data.val().split(',');
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  //Fin de Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente ademas de años a mostrar
 }
 
 // Ingresos
