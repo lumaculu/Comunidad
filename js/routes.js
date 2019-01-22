@@ -21,6 +21,15 @@ var routes = [
           vecinos.attr({
             href: '/settings/'
           })
+          // Este segundo es casi igual que el de arriba porque cuando volvemos
+          // de borrarIngreso() con app.router.navigate('/'), nos encontramos
+          // con 2 navbars, una en page-previous y otra en  page-current. Esta
+          // última no tiene href="/settings/" por eso al ser la segunda pongo
+          // var vecinos = $('.navbar-inner a').eq(1). Investigar porqué.
+          var vecinos = $('.navbar-inner a').eq(1);
+          vecinos.attr({
+            href: '/settings/'
+          })
           datosIniciales();
          }else{
           console.log("Acceso: Usuario");
@@ -168,7 +177,7 @@ var routes = [
     });
     $('.borrarIngreso').on('click', function() {
      borrarIngreso(cantidad);
-     app.router.navigate('/');
+     //app.router.navigate('/');
     });
    },
   }
@@ -779,7 +788,7 @@ var routes = [
           myMessages.addMessage({
             text: valor,
             type: messageType,
-            name: claveVecino,
+            textHeader: claveVecino,
             textFooter: horaMinutos
           });
         })

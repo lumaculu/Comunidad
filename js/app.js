@@ -224,6 +224,7 @@ function borrarIngreso(cant){
      return loquehay - cant;
     });
     actualizarZIngresos(cant);
+    app.router.navigate('/');
    }else{
     console.log("El ingreso " + AñoVecinoMes + " no se borró. No existía.");
     toastIconError.open();
