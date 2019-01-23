@@ -115,6 +115,7 @@ $('.login-screen-content .list-button').on('click', function(){
 // Datos iniciales
 function datosIniciales(){
   //Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente ademas de años a mostrar
+  app.preloader.show();
   refComunidad.orderByKey().startAt("Z").on("value", function(data){
    data.forEach(function(child){
     var clave = child.key;
@@ -128,6 +129,7 @@ function datosIniciales(){
     }
     console.log(clave + ": " + valor);
    });
+   app.preloader.hide();
   }, function (errorObject) {
     console.log("Fallo leyendo: " + errorObject.code);
   });
@@ -154,6 +156,7 @@ function actIngreso(cant){
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var cantFinalParseada = parseInt(cantFinal, 10);
   console.log(AñoVecinoMes + ":" + cantFinalParseada);
+  app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El ingreso " + AñoVecinoMes + " y con valor inicial: " + cantInicial + " ya exite. Actualízalo mejor para que sea de valor: " + cantFinalParseada);
@@ -200,6 +203,7 @@ function actIngreso(cant){
     app.router.back();
    }
   });
+  app.preloader.hide();
  }
 }
 
@@ -214,6 +218,7 @@ function borrarIngreso(cant){
  }else{
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var AñoVecino = AñoVecinoMes.substr(0, 7);
+  app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     refVecinos.child(AñoVecinoMes).remove();
@@ -230,6 +235,7 @@ function borrarIngreso(cant){
     toastIconError.open();
    }
   });
+  app.preloader.hide();
  }
 }
 
@@ -246,6 +252,7 @@ function insIngreso(){
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var cant = parseInt(valorCantidad, 10);
   console.log(AñoVecinoMes + ":" + cant);
+  app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El ingreso " + AñoVecinoMes + " ya exite. Actualízalo mejor.");
@@ -270,11 +277,13 @@ function insIngreso(){
    actualizarZIngresos(cant, true);
    }
   });
+  app.preloader.hide();
  }
 }
 // Fin ingresos
 
 function actualizarZIngresos(cant, sum){
+ app.preloader.show();
  var ZIngresos = refComunidad.child("ZIngresos");
  ZIngresos.transaction(function(loquehay) {
   if(sum){
@@ -283,10 +292,12 @@ function actualizarZIngresos(cant, sum){
    return loquehay - cant;
   }
  });
+ app.preloader.hide();
  actualizarZSaldo(cant, sum);
 }
 
 function actualizarZGastos(cant, sum){
+ app.preloader.show();
  var ZGastos = refComunidad.child("ZGastos");
  ZGastos.transaction(function(loquehay) {
   if(sum){
@@ -297,9 +308,11 @@ function actualizarZGastos(cant, sum){
    return loquehay - cant;
   }
  });
+ app.preloader.hide();
 }
 
 function actualizarZSaldo(cant, sum){
+ app.preloader.show();
  var ZSaldo = refComunidad.child("ZSaldo");
  ZSaldo.transaction(function(loquehay) {
   if(sum){
@@ -308,6 +321,7 @@ function actualizarZSaldo(cant, sum){
    return loquehay - cant;
   }
  });
+ app.preloader.hide();
 }
 
 // gastos
@@ -325,6 +339,7 @@ function actGasto(cant){
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var cantFinalParseada = parseInt(cantFinal, 10);
   console.log(AñoGastoMes + ":" + cantFinalParseada);
+  app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El gasto " + AñoGastoMes + " y con valor inicial: " + cantInicial + " ya exite. Actualízalo mejor para que sea de valor: " + cantFinalParseada);
@@ -371,6 +386,7 @@ function actGasto(cant){
     app.router.back();
    }
   });
+  app.preloader.hide();
  }
 }
 
@@ -385,6 +401,7 @@ function borrarGasto(cant){
  }else{
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var AñoGasto = AñoGastoMes.substr(0, (AñoGastoMes.length)-2);
+  app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     refGasto.child(AñoGastoMes).remove();
@@ -400,6 +417,7 @@ function borrarGasto(cant){
     toastIconError.open();
    }
   });
+  app.preloader.hide();
  }
 }
 
@@ -416,6 +434,7 @@ function insGasto(){
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var cant = parseInt(valorCantidad, 10);
   console.log(AñoGastoMes + ":" + cant);
+  app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El gasto " + AñoGastoMes + " ya exite. Actualízalo mejor.");
@@ -440,6 +459,7 @@ function insGasto(){
    actualizarZGastos(cant, true);
    }
   });
+  app.preloader.hide();
  }
 }
 // Fin gastos
@@ -449,6 +469,7 @@ function actVecino(vecino, password){
  var password = $('#password').val();
  console.log("recibo: "+ vecino +" "+ password);
   console.log(vecino + ":" + password);
+  app.preloader.show();
   refVecinos.child(vecino+"Pass").once('value', function(snapshot) {
    if (snapshot.exists()) {
     refVecinos.update({
@@ -464,12 +485,14 @@ function actVecino(vecino, password){
     app.router.back();
    }
   });
+  app.preloader.hide();
 }
 
 // Vinculos
 function insVinculo(clave, valor){
   var clave = clave.substr(0, clave.indexOf("."));
   console.log(clave, valor);
+  app.preloader.show();
   refVinculos.child(clave).once('value', function(snapshot) {
     console.log("El vinculo " + clave + " no existe. Lo insertaremos.");
     refVinculos.update({
@@ -483,6 +506,7 @@ function insVinculo(clave, valor){
      }
     });
   });
+  app.preloader.hide();
 }
 
 // borrarDocumento
@@ -496,6 +520,7 @@ function borrarDocumento(clave){
  var refStorage = storage.ref();
  // Create a reference to the file to delete
  var refDesert = refStorage.child(archivoStoreSin);
+ app.preloader.show();
  refDesert.delete().then(function() {
   console.log("documento borrado satisfactoriamente");
  }).catch(function(error) {
@@ -511,6 +536,7 @@ function borrarDocumento(clave){
    toastIconError.open();
   }
  });
+ app.preloader.hide();
  //app.dialog.alert('Gracias, item borrado! '+archivoVinculadoSin);
 }
 
