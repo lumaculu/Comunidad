@@ -456,6 +456,18 @@ var routes = [
           })
       })
       app.preloader.hide();
+
+      rootComunidad.once("value", function(comunidad){
+       var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comunidad));
+       var a = document.createElement('a');
+       a.href = 'data:' + data;
+       a.download = 'data.json';
+       a.className = 'button external';
+       a.innerHTML = 'descargar Base de Datos';
+       $('.descargarBD').append(a);
+       console.log(comunidad);
+      })
+
     }
   }
   },

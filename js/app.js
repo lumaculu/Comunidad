@@ -10,12 +10,19 @@ var config = {
 firebase.initializeApp(config);
 
 // Referencias a firebase
+var rootComunidad = firebase.database().ref();
 var refComunidad = firebase.database().ref("Comunidad/");
 var refVecinos = firebase.database().ref("Comunidad/Vecinos");
 var refGasto = firebase.database().ref("Comunidad/Gasto");
 var refVinculos = firebase.database().ref("Comunidad/Vinculos");
 var refMensajes = firebase.database().ref("Comunidad/Mensajes");
 var refSettings = firebase.database().ref("Comunidad/Settings");
+
+/*if (Framework7.device.webView) {
+  alert('SI Home Screen');
+}else{
+  alert('NO Home Screen');
+}*/
 
 // Dom7
 var $ = Dom7;
