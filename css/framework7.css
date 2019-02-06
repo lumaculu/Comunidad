@@ -26093,7 +26093,8 @@ html.device-desktop .data-table .sortable-cell:not(.sortable-cell-active) .table
 }
 .md .message-sent .message-bubble {
   color: #333;
-  background: #c8e6c9;
+  /*background: #c8e6c9; añadido por mi*/
+  background: cyan;
 }
 .md .message-sent .message-avatar + .message-content {
   margin-right: 8px;

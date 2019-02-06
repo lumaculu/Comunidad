@@ -11,6 +11,108 @@
 }
 
 /* Empieza lo que añado yo */
+.instalar{
+  background: #000 !important;
+}
+#logo {
+	background: url(../img/logo.jpg);
+	background-size: 275px 58px;
+	border-radius: 15px;
+	height: 58px;
+	width: 275px;
+	position: absolute;
+	left: 50%;
+	top: 6%;
+	margin-top: -0px;
+	margin-left: -137px;
+	box-shadow: rgba(255, 255, 255, 0.9) 0px 1px 0px inset, #636a82 0px 143px 109px, rgba(0,0,0,0.5) 0px 57px 30px;
+	box-shadow: rgba(255, 255, 255, 0.9) 0px 1px 0px inset, rgba(0,0,0,0.5) 0px 31px 30px, #636a82 0px 103px 109px;
+	border: 1px solid rgba(0, 0, 0, 0.55);
+	box-sizing: border-box;
+	-webkit-transform: translate3d(0,0,0);
+	-webkit-animation: posh 1s ease both;
+}
+#icono {
+	background: url(../img/f7-icon-square.png);
+	background-size: 114px 114px;
+	border-radius: 20px;
+	height: 114px;
+	width: 114px;
+	position: absolute;
+	left: 50%;
+	top: 66%;
+	margin-top: -57px;
+	margin-left: -57px;
+	box-shadow: rgba(255, 255, 255, 0.9) 0px 1px 0px inset, #636a82 0px 143px 109px, rgba(0,0,0,0.5) 0px 57px 30px;
+	box-shadow: rgba(255, 255, 255, 0.9) 0px 1px 0px inset, rgba(0,0,0,0.5) 0px 31px 30px, #636a82 0px 103px 109px;
+	border: 1px solid rgba(0, 0, 0, 0.55);
+	box-sizing: border-box;
+	-webkit-transform: translate3d(0,0,0);
+	-webkit-animation: posh 1s ease both;
+}
+#añadir {
+	position: absolute;
+	width: 320px;
+	bottom: -65px;
+	left: 50%;
+	text-align: center;
+	font-family: HelveticaNeue-Light, Helvetica;
+	font-weight: normal;
+	color: rgba(247, 247, 226, 0.4);
+	font-size: 14px;
+	margin: 0px;
+	margin-left: -160px;
+	-webkit-animation: fadeInSmall 0.5s ease both;
+	-webkit-animation-delay: 0.4s;
+}
+#añadir strong {
+	font-family: HelveticaNeue, Helvetica;
+	font-weight: bold;
+	color: rgba(247, 247, 226, 0.6);
+}
+/* Animations */
+@-webkit-keyframes fadeInSmall {
+	0% {
+		opacity: 0;
+		-webkit-transform: translateY(-15px);
+	}
+	100% {
+		opacity: 1;
+		-webkit-transform: translateY(0);
+	}
+}
+@-webkit-keyframes bounceInRight {
+	0% {
+		opacity: 0;
+		-webkit-transform: translateX(2000px);
+	}
+
+	60% {
+		opacity: 1;
+	}
+
+	80% {
+		-webkit-transform: translateX(10px);
+	}
+
+	100% {
+		-webkit-transform: translateX(0);
+	}
+}
+@-webkit-keyframes posh {
+    0% {
+        -webkit-transform: translateY(-500px) scale(1.9);
+        opacity: 0;
+    }
+    50% {
+    	-webkit-transform: scale(1);
+    }
+    100% {
+        -webkit-transform: translateY(0px);
+        opacity: 1;
+    }
+}
+
 @font-face {
   font-family: 'Roboto-Thin';
   src: url(../fonts/Roboto-Thin.ttf);

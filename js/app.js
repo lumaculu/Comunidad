@@ -38,6 +38,11 @@ var app = new Framework7({
   id: 'io.comunidad.testapp',
   root: '#app',
   theme: theme,
+  dialog: {
+    title: 'Comunidad',
+    buttonOk: 'Ok',
+    buttonCancel: 'Cancelar'
+  },
   data: function () {
     return {
       user: {

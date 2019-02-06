@@ -6,6 +6,12 @@ var routes = [
     url: './index.html',
     on: {
      pageInit: function (e, page) {
+       if(!Framework7.device.webView){
+         console.log('No está añadida a la pantalla de inicio');
+         $('.page').html('');
+         $('.page').addClass('instalar').append('<div id="logo"><h2 id="añadir"><strong>Desarrollo de aplicaciones móviles</strong></h2></div><div id="icono"><h2 id="añadir"><strong>Comunidad</strong><br>Añádela a tu<br><strong>Pantalla de Inicio</strong></h2></div></div>');
+       }else{
+         console.log('Añadida a pantalla de inicio');
        /* Cerrar Pantalla de Login si ya nos conectamos */
        firebase.auth().onAuthStateChanged(function(user) {
         if (user && localStorage.vecino) {
@@ -47,6 +53,7 @@ var routes = [
          app.loginScreen.close();
         }
        });
+      }
      }
    }
   },
@@ -492,6 +499,44 @@ var routes = [
        console.log("Insertado/Actualizado correctamente");
        toastIconActualizado.open();
       }
+      });
+     });
+
+     $('.aCeroIngresosGastos').on('click', function() {
+     app.dialog.confirm('¿Seguro que quieres poner a cero Ingresos y Gastos?', function () {
+      app.preloader.show();
+      refComunidad.update({
+       ZIngresos: 0}, function(error){
+      if(error){
+       console.log("Error Insertando/Actualizando");
+       toastIconError.open();
+      }else{
+       console.log("Insertado/Actualizado correctamente");
+       toastIconActualizado.open();
+      }
+      });
+      refComunidad.update({
+       ZGastos: 0}, function(error){
+      if(error){
+       console.log("Error Insertando/Actualizando");
+       toastIconError.open();
+      }else{
+       console.log("Insertado/Actualizado correctamente");
+       toastIconActualizado.open();
+      }
+      });
+      refComunidad.update({
+       ZSaldo: parseInt(saldo, 10)}, function(error){
+      if(error){
+       console.log("Error Insertando/Actualizando");
+       toastIconError.open();
+      }else{
+       console.log("Insertado/Actualizado correctamente");
+       toastIconActualizado.open();
+      }
+      });
+      app.preloader.hide();
+      app.dialog.alert('¡A cero se puso Ingresos y Gastos!');
       });
      });
     },
