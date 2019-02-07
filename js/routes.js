@@ -52,6 +52,7 @@ var routes = [
          }
          app.loginScreen.close();
         }
+        $('.login-screen .page-content').css('visibility', 'visible');
        });
       }
      }

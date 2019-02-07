@@ -150,6 +150,11 @@ function datosIniciales(){
   }, function (errorObject) {
     console.log("Fallo leyendo: " + errorObject.code);
   });
+  refSettings.child('Saldo').on("value", function(data){
+   $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
   //Fin de Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente ademas de años a mostrar
 }
 
