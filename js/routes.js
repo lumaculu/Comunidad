@@ -67,14 +67,18 @@ var routes = [
       app.preloader.show();
       refVecinos.orderByKey().startAt("Total").on("value", function(data){
        $('#ingresos').html('');
-       totalCuotas = 0;
+       totalCuotas = 0; momentaneo = []; valorUltimo = 0;
+       for (var i = 0; i <= app.Años.length-1; i++) {
+         momentaneo[i] = 0;
+       }
+       console.log(momentaneo);
        data.forEach(function(child){
         var clave = child.key;
         var valor = child.val();
         var claveAño = clave.substr(5, 4);
         var claveVecino = clave.substr(9, 3);
         switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
-         if(valor){
+        if(valor){
          $('#ingresos').append(
          "<li class=año"+claveAño+">"+
          "<a href='/ingresosDetalle/"+clave+"/' class='item-link item-content link'>"+
@@ -85,8 +89,24 @@ var routes = [
          "</div>"+
          "</a>"+
          "</li>");
-         totalCuotas =+ valor;
+         for (var i = app.Años.length-1; i >= 0; i--) {
+          if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }else if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }else if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }
          }
+         totalCuotas += valor;
+         //console.log(totalCuotas);
+        }
          if(claveAño < app.Años[0])
          $('.año'+claveAño+'').hide();
          $("[href='#tab-1']").on('click', function(){
@@ -111,6 +131,14 @@ var routes = [
            }
          })
          //$('.año2017').hide();
+       });
+       $('.popover-links').on('popover:opened', function (e, popover) {
+        $('#tito').html('');
+        $('#tito').append(
+          '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalCuotas){
         $('.list.ingresos').remove();
