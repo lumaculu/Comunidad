@@ -133,8 +133,8 @@ var routes = [
          //$('.año2017').hide();
        });
        $('.popover-links').on('popover:opened', function (e, popover) {
-        $('#tito').html('');
-        $('#tito').append(
+        $('#popover-ingresos').html('');
+        $('#popover-ingresos').append(
           '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
           '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
           '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
@@ -274,7 +274,11 @@ var routes = [
       app.preloader.show();
       refGasto.orderByKey().startAt("Total").on("value", function(data){
        $('#gastos').html('');
-       totalGastos = 0;
+       totalGastos = 0; momentaneo = []; valorUltimo = 0;
+       for (var i = 0; i <= app.Años.length-1; i++) {
+         momentaneo[i] = 0;
+       }
+       console.log(momentaneo);
        data.forEach(function(child){
         var clave = child.key;
         var valor = child.val();
@@ -291,7 +295,22 @@ var routes = [
          "</div>"+
          "</a>"+
          "</li>");
-         totalGastos =+ valor;
+         for (var i = app.Años.length-1; i >= 0; i--) {
+          if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }else if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }else if(claveAño == app.Años[i]){
+           valorUltimo = momentaneo[i];
+           momentaneo[i] = valorUltimo+valor;
+           console.log(claveAño+app.Años[i]+momentaneo[i]);
+          }
+         }
+         totalGastos += valor;
          }
          if(claveAño < app.Años[0])
          $('.año'+claveAño+'').hide();
@@ -317,6 +336,14 @@ var routes = [
            }
          })
          //$('.año2017').hide();
+       });
+       $('.popover-links').on('popover:opened', function (e, popover) {
+        $('#popover-gastos').html('');
+        $('#popover-gastos').append(
+          '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2017: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalGastos){
         $('.list.gastos').remove();
