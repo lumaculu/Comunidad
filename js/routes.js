@@ -236,7 +236,8 @@ var routes = [
            cols: [
              {
                textAlign: 'center',
-               values: ['001','002','003','004','011','012','013','014','021','022','023','024']
+               values: ['001','002','003','004','011','012','013','014','021','022','023','024'],
+               displayValues: ['Bajo Puerta 1', 'Bajo Puerta 2', 'Bajo Puerta 3', 'Bajo Puerta 4', 'Primero Puerta 1', 'Primero Puerta 2', 'Primero Puerta 3', 'Primero Puerta 4', 'Segundo Puerta 1', 'Segundo Puerta 2', 'Segundo Puerta 3', 'Segundo Puerta 4']
              }
            ]
          });
@@ -530,6 +531,15 @@ var routes = [
        $('.descargarBD').append(a);
        console.log(comunidad);
       })
+
+      /*$('.importarBD').on('click', function() {
+       app.dialog.alert("tito");
+        app.request.get('js/tito.json', function (data) {
+         console.log(data);
+         var database = firebase.database();
+         database.ref().set(data);
+        });
+      });*/
 
     }
   }
