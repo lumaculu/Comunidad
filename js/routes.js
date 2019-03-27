@@ -1,3 +1,96 @@
+var DB_VERSION = 1;// borrar desde aqui
+var DB_NAME = "Basedatos";
+
+var abreBasedatosdeIndexedDB = function(){
+ return new Promise(function(resolve, reject){
+  if (!window.indexedDB){
+   reject("IndexedDB no soportado");
+  }
+  var request = window.indexedDB.open(DB_NAME, DB_VERSION);
+  request.onerror = function(event){
+   reject("Error en Basedatos: " + event.target.error);
+  };
+  request.onupgradeneeded = function(event){
+   var db = event.target.result;
+   if (!db.objectStoreNames.contains("Gasto")){
+    db.createObjectStore("Gasto", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Mensajes")){
+    db.createObjectStore("Mensajes", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Sesiones")){
+    db.createObjectStore("Sesiones", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Settings")){
+    db.createObjectStore("Settings", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Vecinos")){
+    db.createObjectStore("Vecinos", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Vinculos")){
+    db.createObjectStore("Vinculos", {autoIncrement: true});
+   }
+   if (!db.objectStoreNames.contains("Inicio")){
+    db.createObjectStore("Inicio", {autoIncrement: true});
+   }
+  };
+  request.onsuccess = function(event){
+   resolve(event.target.result);
+  };
+ });
+};
+
+var abreDatosdeIndexedDB = function(db, storeName, transactionMode){
+ return db
+ .transaction(storeName, transactionMode)
+ .objectStore(storeName);
+};
+
+var añadeDatosaIndexedDB = function(storeName, object){
+ return new Promise(function(resolve, reject){
+  abreBasedatosdeIndexedDB().then(function(db) {
+   abreDatosdeIndexedDB(db, storeName, "readwrite")
+   .add(object).onsuccess = resolve;
+   //mostrarDatosdeIndexedDB();
+  }).catch(function(errorMessage){
+   reject(errorMessage);
+  });
+ });
+};
+
+var modificarTabladeIndexedDB = function(storeName){
+ return new Promise(function(resolve, reject){
+  abreBasedatosdeIndexedDB().then(function(db){
+   abreDatosdeIndexedDB(db, storeName, "readwrite").clear()
+   .onsuccess = function(event){
+     console.log("Tabla "+storeName+" modificada");
+   }
+  })
+ })
+}
+
+var obtenResultadodeIndexedDB = function(storeName){
+ return new Promise(function(resolve){
+  abreBasedatosdeIndexedDB().then(function(db){
+   var objectStore = abreDatosdeIndexedDB(db, storeName);
+   var resultado = [];
+   objectStore.openCursor().onsuccess = function(event){
+    var cursor = event.target.result;
+    if (cursor){
+     resultado.push(cursor.value);
+     cursor.continue();
+    }else{
+     if (resultado.length > 0){
+      resolve(resultado);
+     }
+    }
+   };
+  }).catch(function(){
+    console.log('Fallo yendo a por los '+storeName);
+  });
+ });
+};
+
 var routes = [
   // A partir de aquí lo mío
   // Index page
@@ -6,7 +99,28 @@ var routes = [
     url: './index.html',
     on: {
      pageInit: function (e, page) {
-       if(!Framework7.device.webView){
+      console.log('Dentro de index.html');
+      if(!navigator.onLine){
+        obtenResultadodeIndexedDB('Inicio').then(function(Inicio){
+         for (var i = 0; i < Object.keys(Inicio).length; i++){
+          var todo = Object.values(Inicio[i]).toString();
+          console.log('desde IndexedDB: '+todo);
+          if(todo.startsWith("ZGastos")){
+           var zGastos = todo.substr(8);
+           $('#totalGastos').html(zGastos+"€");
+          }
+          if(todo.startsWith("ZIngresos")){
+           var zIngresos = todo.substr(10);
+           $('#totalIngresos').html(zIngresos+"€");
+          }
+          if(todo.startsWith("ZSaldo")){
+           var zSaldo = todo.substr(7);
+           $('#saldo').html(zSaldo+"€");
+          }
+         }
+        });
+      }
+       if(Framework7.device.webView){
          console.log('No está añadida a la pantalla de inicio');
          $('.page').html('');
          $('.page').addClass('instalar').append('<div id="logo"><h2 id="añadir"><strong>Desarrollo de aplicaciones móviles</strong></h2></div><div id="icono"><h2 id="añadir"><strong>Comunidad</strong><br>Añádela a tu<br><strong>Pantalla de Inicio</strong></h2></div></div>');
@@ -36,7 +150,37 @@ var routes = [
           vecinos.attr({
             href: '/settings/'
           })
-          datosIniciales();
+          //datosIniciales();
+          refComunidad.orderByKey().startAt("Z").on("value", function(data){
+           //modificarTabladeIndexedDB('Inicio');
+           data.forEach(function(child){
+            var clave = child.key;
+            var valor = child.val();
+            añadeDatosaIndexedDB('Inicio', {clave, valor});
+            if(clave == "ZIngresos"){
+             $('#totalIngresos').text(valor+"€");
+            }else if(clave == "ZGastos"){
+             $('#totalGastos').text(valor+"€");
+            }else if(clave == "ZSaldo"){
+             $('#saldo').text(valor+"€");
+            }
+            console.log(clave + ": " + valor);
+           });
+           //app.preloader.hide();
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          refSettings.child('Años').on("value", function(data){
+           app.Años = data.val().split(',');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          refSettings.child('Saldo').on("value", function(data){
+           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          // fin datosIniciales
          }else{
           console.log("Acceso: Usuario");
           $('.quitar').hide();
@@ -48,7 +192,37 @@ var routes = [
           vecinos.attr({
             href: '/vecinos/'
           })
-          datosIniciales();
+          //datosIniciales();
+          refComunidad.orderByKey().startAt("Z").on("value", function(data){
+           //modificarTabladeIndexedDB('Inicio');
+           data.forEach(function(child){
+            var clave = child.key;
+            var valor = child.val();
+            añadeDatosaIndexedDB('Inicio', {clave, valor});
+            if(clave == "ZIngresos"){
+             $('#totalIngresos').text(valor+"€");
+            }else if(clave == "ZGastos"){
+             $('#totalGastos').text(valor+"€");
+            }else if(clave == "ZSaldo"){
+             $('#saldo').text(valor+"€");
+            }
+            console.log(clave + ": " + valor);
+           });
+           //app.preloader.hide();
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          refSettings.child('Años').on("value", function(data){
+           app.Años = data.val().split(',');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          refSettings.child('Saldo').on("value", function(data){
+           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          // fin datosIniciales
          }
          app.loginScreen.close();
         }
@@ -64,7 +238,98 @@ var routes = [
     url: './pages/ingresos.html',
     on: {
      pageInit: function (e, page) {
-      app.preloader.show();
+       if(!navigator.onLine){
+        notificationFulldesconectado.open();
+        obtenResultadodeIndexedDB('Settings').then(function(Settings){
+         for (var i = 0; i < Object.keys(Settings).length; i++){
+          var todo = Object.values(Settings[i]).toString();
+          console.log('Desde indexedDB: '+todo);
+          if(todo.startsWith('Años')){
+           var añosIndexedDB = todo.substr(5);
+           console.log(añosIndexedDB);
+          }
+         }
+        app.Años = añosIndexedDB.split(',');
+        })
+        obtenResultadodeIndexedDB('Vecinos').then(function(Vecinos){
+        $('#ingresos').html('');
+        totalCuotas = 0; momentaneo = []; valorUltimo = 0;
+        for (var i = 0; i <= app.Años.length-1; i++) {
+          momentaneo[i] = 0;
+        }
+         for (var i = 0; i < Object.keys(Vecinos).length; i++){
+          var todo = Object.values(Vecinos[i]).toString();
+          var claveAñoVecino = todo.substr(5, 7);
+          var claveVecino = todo.substr(9, 3);
+          var claveAño = todo.substr(5, 4);
+          var valor = parseInt(todo.substr(todo.lastIndexOf(',')+1), 10);
+          switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
+          if(todo.startsWith('Total')){
+            $('#ingresos').append(
+            "<li class=año"+claveAño+">"+
+            "<a href='/ingresosDetalle/"+claveAñoVecino+"/' class='item-link item-content link'>"+
+            "<div class='item-inner'>"+
+            "<div class='item-title'>Total: "+valor+"€"+"<div class='item-footer'>"+claveAño+"</div>"+
+            "</div>"+
+            "<div class='item-after'>"+vecino+"</div>"+
+            "</div>"+
+            "</a>"+
+            "</li>");
+             if(claveAño == app.Años[2]){
+              valorUltimo = momentaneo[2];
+              momentaneo[2] = valorUltimo+valor;
+              console.log(claveAño+app.Años[2]+momentaneo[2]);
+             }else if(claveAño == app.Años[1]){
+              valorUltimo = momentaneo[1];
+              momentaneo[1] = valorUltimo+valor;
+              console.log(claveAño+app.Años[1]+momentaneo[1]);
+             }else if(claveAño == app.Años[0]){
+              valorUltimo = momentaneo[0];
+              momentaneo[0] = valorUltimo+valor;
+              console.log(claveAño+app.Años[0]+momentaneo[0]);
+             }
+            totalCuotas += valor;
+            console.log(totalCuotas);
+          }
+          if(claveAño < app.Años[0])
+          $('.año'+claveAño+'').hide();
+         }
+         $("[href='#tab-1']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[0]).show();
+           for(i=1; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         $("[href='#tab-2']").on('click', function(){
+           console.log(app.Años.length);
+           for(i=0; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).show();
+           }
+         })
+         $("[href='#tab-3']").on('click', function(){
+           console.log(app.Años.length);
+           $('.año'+app.Años[1]).show();
+           $('.año'+app.Años[0]).hide();
+           for(i=2; i<app.Años.length; i++){
+            $('.año'+app.Años[i]).hide();
+           }
+         })
+         $('.popover-links').on('popover:opened', function (e, popover) {
+          $('#popover-ingresos').html('');
+          $('#popover-ingresos').append(
+            '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
+         });
+         if(!totalCuotas){
+          $('.list.ingresos').remove();
+          $('.page-content.ingresos').append('<div class="block-title">Nada en ingresos</div>');
+         }
+        });
+      }else{
+      //app.preloader.show();
       refVecinos.orderByKey().startAt("Total").on("value", function(data){
        $('#ingresos').html('');
        totalCuotas = 0; momentaneo = []; valorUltimo = 0;
@@ -89,23 +354,23 @@ var routes = [
          "</div>"+
          "</a>"+
          "</li>");
-         for (var i = app.Años.length-1; i >= 0; i--) {
-          if(claveAño == app.Años[i]){
-           valorUltimo = momentaneo[i];
-           momentaneo[i] = valorUltimo+valor;
-           console.log(claveAño+app.Años[i]+momentaneo[i]);
-          }else if(claveAño == app.Años[i]){
-           valorUltimo = momentaneo[i];
-           momentaneo[i] = valorUltimo+valor;
-           console.log(claveAño+app.Años[i]+momentaneo[i]);
-          }else if(claveAño == app.Años[i]){
-           valorUltimo = momentaneo[i];
-           momentaneo[i] = valorUltimo+valor;
-           console.log(claveAño+app.Años[i]+momentaneo[i]);
-          }
+         //for (var i = app.Años.length-1; i >= 0; i--) {
+         if(claveAño == app.Años[2]){
+          valorUltimo = momentaneo[2];
+          momentaneo[2] = valorUltimo+valor;
+          console.log(claveAño+app.Años[2]+momentaneo[2]);
+         }else if(claveAño == app.Años[1]){
+          valorUltimo = momentaneo[1];
+          momentaneo[1] = valorUltimo+valor;
+          console.log(claveAño+app.Años[1]+momentaneo[1]);
+         }else if(claveAño == app.Años[0]){
+          valorUltimo = momentaneo[0];
+          momentaneo[0] = valorUltimo+valor;
+          console.log(claveAño+app.Años[0]+momentaneo[0]);
          }
+         //}
          totalCuotas += valor;
-         //console.log(totalCuotas);
+         console.log(totalCuotas);
         }
          if(claveAño < app.Años[0])
          $('.año'+claveAño+'').hide();
@@ -144,10 +409,11 @@ var routes = [
         $('.list.ingresos').remove();
     	  $('.page-content.ingresos').append('<div class="block-title">Nada en ingresos</div>');
        }
-       app.preloader.hide();
+       //app.preloader.hide();
       }, function (errorObject) {
        console.log("Fallo leyendo: " + errorObject.code);
       });
+      }// fin del else
      },
     }
   },
@@ -157,7 +423,46 @@ var routes = [
   url: './pages/ingresosDetalle.html',
   on: {
    pageInit: function (e, page) {
-    app.preloader.show();
+     if(!navigator.onLine){
+      obtenResultadodeIndexedDB('Vecinos').then(function(Vecinos){
+       $('#ingresosDetalle').html('');
+       for (var i = 0; i < Object.keys(Vecinos).length; i++){
+         var todo = Object.values(Vecinos[i]).toString();
+         console.log(todo);
+         var claveAñoVecino = page.route.params.index;
+         console.log(claveAñoVecino);
+         if(todo.startsWith(claveAñoVecino)){
+          var claveAño = todo.substr(0, 4);
+          var claveMes = todo.substr(7, 2);
+          var claveMesNumeros = todo.substr(7, 2);
+          switch (claveMes){case "01": claveMes="Ene";	break; case "02": claveMes="Feb"; break; case "03": claveMes="Mar";	break; case "04": claveMes="Abr"; break; case "05": claveMes="May";	break; case "06": claveMes="Jun"; break; case "07": claveMes="Jul";	break; case "08": claveMes="Ago"; break; case "09": claveMes="Sep";	break; case "10": claveMes="Oct"; break; case "11": claveMes="Nov";	break; case "12": claveMes="Dic"; break;}
+          var valor = todo.substr(todo.lastIndexOf(',')+1);
+          if(app.acceso){
+           $('#ingresosDetalle').append(
+           "<li>"+
+           "<a href='/actualizarIngreso/"+claveAñoVecino+claveMesNumeros+valor+"/' class='item-link item-content link'>"+
+           "<div class='item-inner'>"+
+           "<div class='item-title'>"+claveMes+": "+valor+"€"+"<div class='item-footer'>"+claveAño+"</div>"+
+           "</div>"+
+           "</div>"+
+           "</a>"+
+           "</li>");
+          }else{
+           $('#ingresosDetalle').append(
+           "<li>"+
+           "<div class='item-inner item-content'>"+
+         	 "<div class='item-title'>"+claveMes+": "+valor+"€"+"<div class='item-footer'>"+claveAño+"</div>"+
+           "</div>"+
+           "</div>"+
+           "</a>"+
+           "</li>");
+          }
+         }
+        }
+      });
+     }
+
+    //app.preloader.show();
     var id = page.route.params.index;
     var claveAñoVecino = id.substr(5);
     var claveAño = id.substr(5, 4);
@@ -189,7 +494,7 @@ var routes = [
        "</li>");
       }
      });
-     app.preloader.hide();
+     //app.preloader.hide();
     }, function (errorObject) {
      console.log("Fallo leyendo: " + errorObject.code);
     });
@@ -202,6 +507,20 @@ var routes = [
   url: './pages/actualizarIngreso.html',
   on: {
    pageInit: function (e, page) {
+    if(!navigator.onLine){
+     obtenResultadodeIndexedDB('Vecinos').then(function(Vecinos){
+      for (var i = 0; i < Object.keys(Vecinos).length; i++){
+       var todo = Object.values(Vecinos[i]).toString();
+       console.log(todo);
+       var claveAñoVecinoMesValor = page.route.params.index;
+       console.log(claveAñoVecinoMesValor);
+       if(todo.startsWith(claveAñoVecinoMesValor)){
+
+       }
+      }
+     })
+    }
+
     var id = page.route.params.index;
     var valorVecino = id.substr(4, 3);
     $('#vecino').val(valorVecino);
@@ -213,9 +532,17 @@ var routes = [
     var cantidad = id.substr(9);
     $('#cantidad').val(cantidad);
     $('.actualizarIngreso').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      actIngreso(cantidad);
     });
     $('.borrarIngreso').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      borrarIngreso(cantidad);
      //app.router.navigate('/');
     });
@@ -261,6 +588,10 @@ var routes = [
          });
      //})
     $('.insertarIngreso').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      insIngreso();
     });
    },
@@ -272,7 +603,100 @@ var routes = [
     url: './pages/gastos.html',
     on: {
      pageInit: function (e, page) {
-      app.preloader.show();
+       if(!navigator.onLine){
+         notificationFulldesconectado.open();
+         obtenResultadodeIndexedDB('Settings').then(function(Settings){
+          for (var i = 0; i < Object.keys(Settings).length; i++){
+           var todo = Object.values(Settings[i]).toString();
+           console.log('Desde indexedDB: '+todo);
+           if(todo.startsWith('Años')){
+            var añosIndexedDB = todo.substr(5);
+            console.log(añosIndexedDB);
+           }
+          }
+         app.Años = añosIndexedDB.split(',');
+         })
+        obtenResultadodeIndexedDB('Gasto').then(function(Gastos){
+        $('#gastos').html('');
+        totalGastos = 0; momentaneo = []; valorUltimo = 0;
+        for (var i = 0; i <= app.Años.length-1; i++) {
+          momentaneo[i] = 0;
+        }
+         for (var i = 0; i < Object.keys(Gastos).length; i++){
+          var todo = Object.values(Gastos[i]).toString();
+          var claveAño = todo.substr(5, 4);
+          var claveGasto = todo.slice(9, todo.lastIndexOf(','));
+          var valor = parseInt(todo.substr(todo.lastIndexOf(',')+1), 10);
+          if(todo.startsWith('Total')){
+            $('#gastos').append(
+            "<li class=año"+todo.substr(5, 4)+">"+
+            "<a href='/gastosDetalle/"+claveAño+claveGasto+"/' class='item-link item-content link'>"+
+            "<div class='item-inner'>"+
+            "<div class='item-title'>Total: "+todo.substr(todo.lastIndexOf(',')+1)+"€"+"<div class='item-footer'>"+todo.substr(5, 4)+"</div>"+
+            "</div>"+
+            "<div class='item-after'>"+todo.slice(9, todo.lastIndexOf(','))+"</div>"+
+            "</div>"+
+            "</a>"+
+            "</li>");
+
+             if(claveAño == app.Años[0]){
+              valorUltimo = momentaneo[0];
+              momentaneo[0] = valorUltimo+valor;
+              console.log(claveAño+app.Años[0]+momentaneo[0]);
+            }else if(claveAño == app.Años[1]){
+              valorUltimo = momentaneo[1];
+              momentaneo[1] = valorUltimo+valor;
+              console.log(claveAño+app.Años[1]+momentaneo[1]);
+            }else if(claveAño == app.Años[2]){
+              valorUltimo = momentaneo[2];
+              momentaneo[2] = valorUltimo+valor;
+              console.log(claveAño+app.Años[2]+momentaneo[2]);
+             }
+             totalGastos += valor;
+             console.log(totalGastos);
+          }
+          if(claveAño < app.Años[0])
+          $('.año'+claveAño+'').hide();
+          $("[href='#tab-1']").on('click', function(){
+            console.log(app.Años.length);
+            $('.año'+app.Años[0]).show();
+            for(i=1; i<app.Años.length; i++){
+             $('.año'+app.Años[i]).hide();
+            }
+          })
+          $("[href='#tab-2']").on('click', function(){
+            console.log(app.Años.length);
+            for(i=0; i<app.Años.length; i++){
+             $('.año'+app.Años[i]).show();
+            }
+          })
+          $("[href='#tab-3']").on('click', function(){
+            console.log(app.Años.length);
+            $('.año'+app.Años[1]).show();
+            $('.año'+app.Años[0]).hide();
+            for(i=2; i<app.Años.length; i++){
+             $('.año'+app.Años[i]).hide();
+            }
+          })
+
+          if(todo.substr(5, 4) < app.Años[0])
+          $('.año'+todo.substr(5, 4)+'').hide();
+         }
+        });
+        $('.popover-links').on('popover:opened', function (e, popover) {
+         $('#popover-gastos').html('');
+         $('#popover-gastos').append(
+           '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[0]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[1]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2017: '+momentaneo[2]+'€</a></li>');
+        });
+        if(!totalGastos){
+         $('.list.gastos').remove();
+       	$('.page-content.gastos').append('<div class="block-title">Nada en gastos</div>');
+        }
+      }else{
+      //app.preloader.show();
       refGasto.orderByKey().startAt("Total").on("value", function(data){
        $('#gastos').html('');
        totalGastos = 0; momentaneo = []; valorUltimo = 0;
@@ -350,10 +774,13 @@ var routes = [
         $('.list.gastos').remove();
       	$('.page-content.gastos').append('<div class="block-title">Nada en gastos</div>');
        }
-       app.preloader.hide();
+       //app.preloader.hide();
       }, function (errorObject) {
        console.log("Fallo leyendo: " + errorObject.code);
       });
+
+    }//fin else if(navigator.onLine)
+
      },
     }
   },
@@ -363,12 +790,50 @@ var routes = [
   url: './pages/gastosDetalle.html',
   on: {
    pageInit: function (e, page) {
+     if(!navigator.onLine){
+      obtenResultadodeIndexedDB('Gasto').then(function(Gasto){
+       $('#gastosDetalle').html('');
+       for (var i = 0; i < Object.keys(Gasto).length; i++){
+         var todo = Object.values(Gasto[i]).toString();
+         var AñoGasto = page.route.params.index;
+         if(todo.startsWith(AñoGasto)){
+          var claveAño = todo.substr(0, 4);
+          var claveMes = todo.substr(todo.lastIndexOf(',')-2, 2);
+          console.log("La clave del mes es: "+claveMes);
+          var claveMesNumeros = todo.substr(todo.lastIndexOf(',')-2, 2);
+          switch (claveMes){case "01": claveMes="Ene";	break; case "02": claveMes="Feb"; break; case "03": claveMes="Mar";	break; case "04": claveMes="Abr"; break; case "05": claveMes="May";	break; case "06": claveMes="Jun"; break; case "07": claveMes="Jul";	break; case "08": claveMes="Ago"; break; case "09": claveMes="Sep";	break; case "10": claveMes="Oct"; break; case "11": claveMes="Nov";	break; case "12": claveMes="Dic"; break;}
+          var valor = todo.substr(todo.lastIndexOf(',')+1);
+          if(app.acceso){
+           $('#gastosDetalle').append(
+           "<li>"+
+           "<a href='/actualizarGasto/"+AñoGasto+claveMes+":"+valor+"/' class='item-link item-content link'>"+
+           "<div class='item-inner'>"+
+           "<div class='item-title'>"+claveMes+": "+valor+"€"+"<div class='item-footer'>"+claveAño+"</div>"+
+           "</div>"+
+           "</div>"+
+           "</a>"+
+           "</li>");
+          }else{
+           $('#gastosDetalle').append(
+           "<li>"+
+           "<div class='item-inner item-content'>"+
+           "<div class='item-title'>"+claveMes+": "+valor+"€"+"<div class='item-footer'>"+claveAño+"</div>"+
+           "</div>"+
+           "</div>"+
+           "</a>"+
+           "</li>");
+          }
+         }
+        }
+      });
+    }
+
     var id = page.route.params.index;
     var AñoGasto = id.substr(5);
     console.log("AñoGasto: "+ AñoGasto);
     console.log("GASTOS me envía: "+ id);
     var claveAño = id.substr(5, 4);
-    app.preloader.show();
+    //app.preloader.show();
     refGasto.orderByKey().startAt(AñoGasto+"01").endAt(AñoGasto+"12").on("value", function(data){
      $('#gastosDetalle').html('');
      data.forEach(function(child){
@@ -399,10 +864,11 @@ var routes = [
        "</li>");
       }
      });
-     app.preloader.hide();
+     //app.preloader.hide();
     }, function (errorObject) {
      console.log("Fallo leyendo: " + errorObject.code);
     });
+
    },
   }
   },
@@ -424,9 +890,17 @@ var routes = [
     var valorGasto = id.substring(4, id.indexOf(":")-3);
     $('#gasto').val(valorGasto);
     $('.actualizarGasto').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      actGasto(cantidad);
     });
     $('.borrarGasto').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      borrarGasto(cantidad);
      app.router.navigate('/');
     });
@@ -439,7 +913,7 @@ var routes = [
   url: './pages/insertarGasto.html',
   on: {
    pageInit: function (e, page) {
-     app.preloader.show();
+     //app.preloader.show();
      refSettings.child('Gastos').on("value", function(data){
          valor = data.val().split(',');
          console.log(valor);
@@ -471,8 +945,12 @@ var routes = [
            ]
          });
      })
-     app.preloader.hide();
+     //app.preloader.hide();
     $('.insertarGasto').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      insGasto();
     });
    },
@@ -488,7 +966,7 @@ var routes = [
   url: './pages/settings.html',
   on: {
     pageInit: function (e, page) {
-      app.preloader.show();
+      //app.preloader.show();
       refSettings.child('Gastos').on("value", function(data){
         console.log(data.val());
         if(data.val() == null){
@@ -519,7 +997,7 @@ var routes = [
            href: '/verAños/'+años+'/'
           })
       })
-      app.preloader.hide();
+      //app.preloader.hide();
 
       rootComunidad.once("value", function(comunidad){
        var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comunidad));
@@ -554,6 +1032,10 @@ var routes = [
      console.log("recibo: "+id);
      $('#saldo').val(id);
      $('.actualizarSaldo').on('click', function() {
+      if(!navigator.onLine){
+       notificationFullrestringido.open();
+       return;
+      }
       var saldo = $('#saldo').val();
       if (!saldo) return;
       refSettings.update({
@@ -570,7 +1052,11 @@ var routes = [
 
      $('.aCeroIngresosGastos').on('click', function() {
      app.dialog.confirm('¿Seguro que quieres poner a cero Ingresos y Gastos?', function () {
-      app.preloader.show();
+      if(!navigator.onLine){
+       notificationFullrestringido.open();
+       return;
+      }
+      //app.preloader.show();
       refComunidad.update({
        ZIngresos: 0}, function(error){
       if(error){
@@ -601,7 +1087,7 @@ var routes = [
        toastIconActualizado.open();
       }
       });
-      app.preloader.hide();
+      //app.preloader.hide();
       app.dialog.alert('¡A cero se puso Ingresos y Gastos!');
       });
      });
@@ -618,9 +1104,13 @@ var routes = [
      console.log("recibo: "+id);
      $('#años').val(id);
      $('.actualizarAños').on('click', function() {
+      if(!navigator.onLine){
+       notificationFullrestringido.open();
+       return;
+      }
       var años = $('#años').val();
       if (!años) return;
-      app.preloader.show();
+      //app.preloader.show();
       refSettings.update({
        Años: años}, function(error){
       if(error){
@@ -630,7 +1120,7 @@ var routes = [
        console.log("Insertado/Actualizado correctamente");
        toastIconActualizado.open();
       }
-      app.preloader.hide();
+      //app.preloader.hide();
       });
      });
     },
@@ -642,7 +1132,25 @@ var routes = [
   url: './pages/verGastos.html',
   on: {
     pageInit: function (e, page) {
-      app.preloader.show();
+      if(!navigator.onLine){
+       notificationFullSettingsGastos.open();
+        $('#verGastos').html('');
+        obtenResultadodeIndexedDB('Settings').then(function(Settings){
+         for (var i = 0; i < Object.keys(Settings).length; i++){
+          var todo = Object.values(Settings[i]).toString();
+          console.log('desde IndexedDB: '+todo);
+          if(todo.startsWith("Gastos")){
+           var valor = todo.substr(todo.indexOf(',')+1);
+           var array = valor.split(',');
+           console.log(valor+'-'+valor.split(',').length);
+           for(i=0; i<valor.split(',').length; i++){
+            $('#verGastos').append("<li><div class='item-title'>"+array[i]+"</div></li>");
+           }
+          }
+         }
+        });
+      }else{
+      //app.preloader.show();
       refSettings.child('Gastos').on("value", function(data){
         if(data.val() == null){
           var valor = data.val();
@@ -663,6 +1171,10 @@ var routes = [
           }
         }
           $('.deleted-callback').on('swipeout:deleted', function () {
+           if(!navigator.onLine){
+            notificationFullrestringido.open();
+            return;
+           }
           var indice = $(this).attr("id");
           if(indice > -1)
           valor.splice(indice, 1);
@@ -684,7 +1196,13 @@ var routes = [
           }
         })
       })
+    }//fin del else
       $('.actualizarGasto').on('click', function() {
+       if(!navigator.onLine){
+        notificationFullrestringido.open();
+        return;
+       }
+       console.log('Has clicado en Añadir Gasto');
        var gasto = $('#verGasto').val();
        if (gasto.length === 0) return;
        $('#gasto').val('');
@@ -712,7 +1230,7 @@ var routes = [
          }
        })
       });
-      app.preloader.hide();
+      //app.preloader.hide();
     },
   }
   },
@@ -725,7 +1243,7 @@ var routes = [
     if(!app.acceso){
       console.log(localStorage.getItem("vecino"));
       var vecino = localStorage.getItem("vecino");
-      app.preloader.show();
+      //app.preloader.show();
       refVecinos.orderByKey().startAt(vecino+"Pass").endAt(vecino+"Pass").on("value", function(data){
        $('#vecinos').html('');
        data.forEach(function(child){
@@ -746,12 +1264,12 @@ var routes = [
          "</li>");
          }
        });
-       app.preloader.hide();
+       //app.preloader.hide();
       }, function (errorObject) {
        console.log("Fallo leyendo: " + errorObject.code);
       });
     }else{
-    app.preloader.show();
+    //app.preloader.show();
     refVecinos.orderByKey().startAt("001Acc").endAt("114Pass").on("value", function(data){
      $('#vecinos').html('');
      data.forEach(function(child){
@@ -781,7 +1299,7 @@ var routes = [
        "</li>");
       }
      });
-     app.preloader.hide();
+     //app.preloader.hide();
     }, function (errorObject) {
      console.log("Fallo leyendo: " + errorObject.code);
     });
@@ -804,6 +1322,10 @@ var routes = [
     console.log("password: "+password);
     $('#password').val(password);
     $('.actualizarVecino').on('click', function() {
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      var password = $('#password').val();
      var user = firebase.auth().currentUser;
      if (user) {
@@ -828,7 +1350,7 @@ var routes = [
    pageInit: function (e, page) {
    var id = page.route.params.index;
    console.log("El id es: " + id);
-   app.preloader.show();
+   //app.preloader.show();
     refVinculos.orderByKey().startAt(id).endAt(id).on("value", function(data){
     $('#verArchivo').html('');
      data.forEach(function(child){
@@ -840,7 +1362,7 @@ var routes = [
         //"<embed src="+valor+" type='application/pdf'></embed>" Descomentar para ver PDFs en ruta verArchivo
       );
      });
-     app.preloader.hide();
+     //app.preloader.hide();
     }, function (errorObject) {
       console.log("Fallo leyendo: " + errorObject.code);
     });
@@ -853,7 +1375,30 @@ var routes = [
   url: './pages/subirArchivo.html',
   on:{
    pageInit: function(e, page){
-    app.preloader.show();
+    if(!navigator.onLine){
+     notificationFullDocumentos.open();
+      obtenResultadodeIndexedDB('Vinculos').then(function(Vinculos){
+       for (var i = 0; i < Object.keys(Vinculos).length; i++){
+        var todo = Object.values(Vinculos[i]).toString();
+        var clave = todo.substr(0, todo.lastIndexOf(','));
+        var valor = todo.substr(todo.lastIndexOf(','));
+        var nombreArchivo = valor.substr(valor.indexOf("%2F"), valor.indexOf("?"));
+        console.log('desde IndexedDB: '+todo);
+        if(todo){
+         $('ul#vinculos').append(
+         "<li>"+
+         "<div class='item-inner item-content'>"+
+         "<div class='item-title'>"+clave+
+         "</div>"+
+         "</div>"+
+         "</li>");
+        }else{
+         $('.list.vinculos').remove();
+         $('.page-content.vinculos').append('<div class="block-title">Nada en vinculos</div>');
+        }
+       }
+      });
+    }else{
     refVinculos.on("value", function(data){
      $('ul#vinculos').html('');
      data.forEach(function(child){
@@ -878,13 +1423,20 @@ var routes = [
        $('.page-content.vinculos').append('<div class="block-title">Nada en vinculos</div>');
       }
      });
-     app.preloader.hide();
+     //app.preloader.hide();
     }, function (errorObject) {
      console.log("Fallo leyendo: " + errorObject.code);
     });
+
+  }// fin del else
+
     var storageService = firebase.storage();
     // asociamos el manejador de eventos sobre el INPUT FILE
     document.getElementById('campoarchivo').addEventListener('change', function(evento){
+     if(!navigator.onLine){
+      notificationFullrestringido.open();
+      return;
+     }
      evento.preventDefault();
      var archivo  = evento.target.files[0];
      var archivoSinEspacios = archivo.name.replace(/ /g,'');
@@ -923,7 +1475,31 @@ var routes = [
   url: './pages/subirArchivo2.html',
   on:{
     pageInit: function(e, page){
-      app.preloader.show();
+      //app.preloader.show();
+      if(!navigator.onLine){
+       notificationFullDocumentos.open();
+        obtenResultadodeIndexedDB('Vinculos').then(function(Vinculos){
+         for (var i = 0; i < Object.keys(Vinculos).length; i++){
+          var todo = Object.values(Vinculos[i]).toString();
+          var clave = todo.substr(0, todo.lastIndexOf(','));
+          var valor = todo.substr(todo.lastIndexOf(','));
+          var nombreArchivo = valor.substr(valor.indexOf("%2F"), valor.indexOf("?"));
+          console.log('desde IndexedDB: '+todo);
+          if(todo){
+            $('ul#vinculos').append(
+             "<li>"+
+              "<div class='item-inner item-content'>"+
+              "<div class='item-title'>"+clave+
+              "</div>"+
+              "</div>"+
+             "</li>");
+          }else{
+           $('.list.vinculos').remove();
+           $('.page-content.vinculos').append('<div class="block-title">Nada en vinculos</div>');
+          }
+         }
+        });
+      }else{
       refVinculos.on("value", function(data){
        $('ul#vinculos').html('');
        data.forEach(function(child){
@@ -945,88 +1521,130 @@ var routes = [
          $('.page-content.vinculos').append('<div class="block-title">Nada en vinculos</div>');
         }
        });
-       app.preloader.hide();
+       //app.preloader.hide();
       }, function (errorObject) {
        console.log("Fallo leyendo: " + errorObject.code);
       });
+    }//fin del else
     }
   }
   },
-  // notificaciones
-  {
-  path: '/notificaciones/',
-  url: './pages/notificaciones.html',
-  on:{
-    pageInit: function (e, page){
-      var myMessages = app.messages.create({
-        el: '.messages'
-      });
-      var myMessagebar = app.messagebar.create({
-       el: '.messagebar'
-      });
-      app.preloader.show();
-      refMensajes.on("value", function(data){
-        $('.messages').html('');
-        //var ultimoAñoMesDia;
-        var ultimaFecha;
-        data.forEach(function(child){
-          var clave = child.key;
-          var valor = child.val();
-          var claveVecino = clave.substr(13, 3);
-          var fechaHorasMinutosSegundos = new Date(parseInt(clave.substr(0, 13))).toLocaleString();
-          var fecha = fechaHorasMinutosSegundos.substr(0, fechaHorasMinutosSegundos.lastIndexOf(":")-5);
-          var horaMinutos = fechaHorasMinutosSegundos.substr(fechaHorasMinutosSegundos.lastIndexOf(':')-5, 5);
-          if (claveVecino == localStorage.vecino){
-            messageType = 'sent';
-            name = claveVecino;
-          }else{
-            messageType = 'received';
-          }
-        if(fecha != ultimaFecha){
-          $('.messages').append(
-            '<div class="messages-title">' + fecha + '</div>'
-          )
-          ultimaFecha = fecha;
-        }
-          myMessages.addMessage({
-            text: valor,
-            type: messageType,
-            textHeader: claveVecino,
-            textFooter: horaMinutos
-          });
-        })
-      })
-      app.preloader.hide();
-
-      $('.messagebar .link').on('click', function(){
-        var refAhora = firebase.database().ref("Comunidad/Sesiones");
-        var session = "session" + localStorage.vecino;
-        refAhora.update({
-         [session]: firebase.database.ServerValue.TIMESTAMP
-        });
-        var messageText = myMessagebar.getValue().replace(/\n/g, '<br>').trim();
-        if (messageText.length === 0) return;
-        myMessagebar.clear();
-        refAhora.once("value", function(data){
-          data.forEach(function(child){
-            var clave = child.key;
-            var valor = child.val();
-            if(clave == "session" + localStorage.vecino){
-             var ahora = valor;
-             console.log(ahora);
-             var claveMensaje = ahora+localStorage.vecino;
-             refMensajes.update({
-               [claveMensaje]: messageText
-             }).catch(function(error) {
-              console.log("error metiendo mensaje");
-             });
-            }
-          })
-        })
-      });
+// notificaciones
+{
+path: '/notificaciones/',
+url: './pages/notificaciones.html',
+on:{
+ pageInit: function (e, page){
+  $('.messages').html('');
+  var myMessages = app.messages.create({
+   el: '.messages'
+  });
+  var myMessagebar = app.messagebar.create({
+   el: '.messagebar'
+  });
+  if(!navigator.onLine){
+   obtenResultadodeIndexedDB('Mensajes').then(function(Mensajes){
+    for (var i = 0; i < Object.keys(Mensajes).length; i++){
+     var todo = Object.values(Mensajes[i]).toString();
+     console.log(todo);
+     var ultimaFecha;
+     var clave = todo.substr(0, 16);
+     var valor = todo.substr(todo.lastIndexOf(',')+1);
+     var claveVecino = clave.substr(clave.length - 3);
+     var fechaHorasMinutosSegundos = new Date(parseInt(clave.substr(0, 13))).toLocaleString();
+     var fecha = fechaHorasMinutosSegundos.substr(0, fechaHorasMinutosSegundos.lastIndexOf(":")-5);
+     var horaMinutos = 'Desconectado';
+     var horaMinutos = fechaHorasMinutosSegundos.substr(fechaHorasMinutosSegundos.lastIndexOf(':')-5, 5);
+     if (claveVecino == localStorage.vecino){
+      messageType = 'sent';
+      name = claveVecino;
+     }else{
+      messageType = 'received';
+     }
+     if(fecha != ultimaFecha){
+      $('.messages').append('<div class="messages-title">' + fecha + '</div>')
+      ultimaFecha = fecha;
+     }
+     myMessages.addMessage({
+      text: valor,
+      type: messageType,
+      textHeader: claveVecino,
+      textFooter: horaMinutos
+     });
     }
-  }
-  },
+   });
+  }else{
+   refMensajes.on("value", function(data){
+    $('.messages').html('');
+    var ultimaFecha;
+    data.forEach(function(child){
+     var clave = child.key;
+     var valor = child.val();
+     var claveVecino = clave.substr(clave.length - 3);
+     var fechaHorasMinutosSegundos = new Date(parseInt(clave.substr(0, 13))).toLocaleString();
+     var fecha = fechaHorasMinutosSegundos.substr(0, fechaHorasMinutosSegundos.lastIndexOf(":")-5);
+     var horaMinutos = fechaHorasMinutosSegundos.substr(fechaHorasMinutosSegundos.lastIndexOf(':')-5, 5);
+     if (claveVecino == localStorage.vecino){
+      messageType = 'sent';
+      name = claveVecino;
+     }else{
+      messageType = 'received';
+     }
+     if(fecha != ultimaFecha){
+      $('.messages').append('<div class="messages-title">' + fecha + '</div>')
+      ultimaFecha = fecha;
+     }
+     myMessages.addMessage({
+      text: valor,
+      type: messageType,
+      textHeader: claveVecino,
+      textFooter: horaMinutos
+     });
+    })
+   })
+  } // fin else if(navigator.onLine)
+  $('.messagebar .link').on('click', function(){
+   if(!navigator.onLine){
+    notificationFullrestringido.open();
+    return;
+   }
+   var messageText = myMessagebar.getValue().replace(/\n/g, '<br>').trim();
+   if (messageText.length === 0) return;
+   myMessagebar.clear();
+   var fecha = new Date();
+   var hora = fecha.getHours();
+   var minutos = fecha.getMinutes();
+   var horaMinutosDevice = hora+":"+minutos;
+   myMessages.addMessage({
+    text: messageText,
+    type: 'sent',
+    textHeader: localStorage.vecino,
+    textFooter: horaMinutosDevice
+   });
+   var refAhora = firebase.database().ref("Comunidad/Sesiones");
+   var session = "session" + localStorage.vecino;
+   refAhora.update({
+    [session]: firebase.database.ServerValue.TIMESTAMP
+   });
+   refAhora.once("value", function(data){
+    data.forEach(function(child){
+     var clave = child.key;
+     var valor = child.val();
+     if(clave == "session" + localStorage.vecino){
+      var ahora = valor;
+      var claveMensaje = ahora+localStorage.vecino;
+      refMensajes.update({
+       [claveMensaje]: messageText
+      }).catch(function(error) {
+       console.log("error metiendo mensaje");
+      });
+     }
+    })
+   })
+  });
+ }
+}
+},
       // y hasta aquí lo mio
   // About page
   {

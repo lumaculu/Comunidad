@@ -9,6 +9,14 @@ var config = {
 
 firebase.initializeApp(config);
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register("serviceworker.js").then(function(registration) {
+	console.log("Service Worker registrado con scope:", registration.scope);
+  }).catch(function(err) {
+    console.log("Service Worker registro fallido:", err);
+  });
+}
+
 // Referencias a firebase
 var rootComunidad = firebase.database().ref();
 var refComunidad = firebase.database().ref("Comunidad/");
@@ -16,13 +24,18 @@ var refVecinos = firebase.database().ref("Comunidad/Vecinos");
 var refGasto = firebase.database().ref("Comunidad/Gasto");
 var refVinculos = firebase.database().ref("Comunidad/Vinculos");
 var refMensajes = firebase.database().ref("Comunidad/Mensajes");
+var refSesiones = firebase.database().ref("Comunidad/Sesiones");
 var refSettings = firebase.database().ref("Comunidad/Settings");
 
-/*if (Framework7.device.webView) {
-  alert('SI Home Screen');
-}else{
-  alert('NO Home Screen');
-}*/
+// Comprobar conexión
+window.addEventListener('offline', function(){
+  console.log('Estás desconectado tito');
+  notificationFulldesconectado.open();
+})
+window.addEventListener('online', function(){
+  console.log('Estás conectado tito');
+  notificationFullconectado.open();
+})
 
 // Dom7
 var $ = Dom7;
@@ -127,11 +140,79 @@ $('.login-screen-content .list-button').on('click', function(){
 // Datos iniciales
 function datosIniciales(){
   //Trozo añadido para mostrar Saldo, Gastos e Ingresos inicialmente ademas de años a mostrar
-  app.preloader.show();
-  refComunidad.orderByKey().startAt("Z").on("value", function(data){
+  refGasto.on("value", function(data){ // Inicio de meter Firebase db en IndexedDB
+   modificarTabladeIndexedDB('Gasto');
    data.forEach(function(child){
     var clave = child.key;
     var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Gasto', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  refMensajes.on("value", function(data){
+   modificarTabladeIndexedDB('Mensajes');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Mensajes', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  refSesiones.on("value", function(data){
+   modificarTabladeIndexedDB('Sesiones');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Sesiones', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  refSettings.on("value", function(data){
+   modificarTabladeIndexedDB('Settings');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Settings', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  refVecinos.on("value", function(data){
+   modificarTabladeIndexedDB('Vecinos');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Vecinos', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  });
+  refVinculos.on("value", function(data){
+   modificarTabladeIndexedDB('Vinculos');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    console.log(clave + ": " + valor);
+    añadeDatosaIndexedDB('Vinculos', {clave, valor});
+   });
+  }, function (errorObject) {
+    console.log("Fallo leyendo: " + errorObject.code);
+  }); // Fin de meter Firebase db en indexedDB
+
+  refComunidad.orderByKey().startAt("Z").on("value", function(data){
+   modificarTabladeIndexedDB('Inicio');
+   data.forEach(function(child){
+    var clave = child.key;
+    var valor = child.val();
+    añadeDatosaIndexedDB('Inicio', {clave, valor});
     if(clave == "ZIngresos"){
      $('#totalIngresos').text(valor+"€");
     }else if(clave == "ZGastos"){
@@ -141,7 +222,7 @@ function datosIniciales(){
     }
     console.log(clave + ": " + valor);
    });
-   app.preloader.hide();
+   //app.preloader.hide();
   }, function (errorObject) {
     console.log("Fallo leyendo: " + errorObject.code);
   });
@@ -160,6 +241,8 @@ function datosIniciales(){
 
 // Ingresos
 function actIngreso(cant){
+  if(!navigator.onLine)
+  notificationFullmodificar.open();
  var valorVecino = $('#vecino').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -173,7 +256,7 @@ function actIngreso(cant){
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var cantFinalParseada = parseInt(cantFinal, 10);
   console.log(AñoVecinoMes + ":" + cantFinalParseada);
-  app.preloader.show();
+  //app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El ingreso " + AñoVecinoMes + " y con valor inicial: " + cantInicial + " ya exite. Actualízalo mejor para que sea de valor: " + cantFinalParseada);
@@ -198,7 +281,8 @@ function actIngreso(cant){
      return (loquehay - cantInicial) + cantFinalParseada;
     });
     actualizarZIngresos(actCantidad, true);
-    app.router.back();
+    app.router.navigate('/');
+    //app.router.back();
    }else{
     var AñoVecino = AñoVecinoMes.substr(0, 7);
     console.log("El ingreso " + AñoVecinoMes + " no existe. Lo insertaremos.");
@@ -220,11 +304,13 @@ function actIngreso(cant){
     app.router.back();
    }
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 
 function borrarIngreso(cant){
+ if(!navigator.onLine)
+ notificationFullborrar.open();
  var valorVecino = $('#vecino').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -235,7 +321,7 @@ function borrarIngreso(cant){
  }else{
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var AñoVecino = AñoVecinoMes.substr(0, 7);
-  app.preloader.show();
+  //app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     refVecinos.child(AñoVecinoMes).remove();
@@ -252,11 +338,13 @@ function borrarIngreso(cant){
     toastIconError.open();
    }
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 
 function insIngreso(){
+ if(!navigator.onLine)
+ notificationFullinsIngreso.open();
  var valorVecino = $('#vecino').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -269,7 +357,7 @@ function insIngreso(){
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var cant = parseInt(valorCantidad, 10);
   console.log(AñoVecinoMes + ":" + cant);
-  app.preloader.show();
+  //app.preloader.show();
   refVecinos.child(AñoVecinoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El ingreso " + AñoVecinoMes + " ya exite. Actualízalo mejor.");
@@ -293,14 +381,15 @@ function insIngreso(){
     });
    actualizarZIngresos(cant, true);
    }
+   app.router.navigate('/');
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 // Fin ingresos
 
 function actualizarZIngresos(cant, sum){
- app.preloader.show();
+ //app.preloader.show();
  var ZIngresos = refComunidad.child("ZIngresos");
  ZIngresos.transaction(function(loquehay) {
   if(sum){
@@ -309,12 +398,12 @@ function actualizarZIngresos(cant, sum){
    return loquehay - cant;
   }
  });
- app.preloader.hide();
+ //app.preloader.hide();
  actualizarZSaldo(cant, sum);
 }
 
 function actualizarZGastos(cant, sum){
- app.preloader.show();
+ //app.preloader.show();
  var ZGastos = refComunidad.child("ZGastos");
  ZGastos.transaction(function(loquehay) {
   if(sum){
@@ -325,11 +414,11 @@ function actualizarZGastos(cant, sum){
    return loquehay - cant;
   }
  });
- app.preloader.hide();
+ //app.preloader.hide();
 }
 
 function actualizarZSaldo(cant, sum){
- app.preloader.show();
+ //app.preloader.show();
  var ZSaldo = refComunidad.child("ZSaldo");
  ZSaldo.transaction(function(loquehay) {
   if(sum){
@@ -338,11 +427,13 @@ function actualizarZSaldo(cant, sum){
    return loquehay - cant;
   }
  });
- app.preloader.hide();
+ //app.preloader.hide();
 }
 
 // gastos
 function actGasto(cant){
+ if(!navigator.onLine)
+ notificationFullmodificar.open();
  var valorGasto = $('#gasto').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -356,7 +447,7 @@ function actGasto(cant){
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var cantFinalParseada = parseInt(cantFinal, 10);
   console.log(AñoGastoMes + ":" + cantFinalParseada);
-  app.preloader.show();
+  //app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El gasto " + AñoGastoMes + " y con valor inicial: " + cantInicial + " ya exite. Actualízalo mejor para que sea de valor: " + cantFinalParseada);
@@ -381,7 +472,8 @@ function actGasto(cant){
      return (loquehay - cantInicial) + cantFinalParseada;
     });
     actualizarZGastos(actCantidad, false);
-    app.router.back();
+    //app.router.back();
+    app.router.navigate('/');
    }else{
     var AñoGasto = AñoGastoMes.substr(0, (AñoGastoMes.length)-2);
     console.log("El gasto " + AñoGastoMes + " no existe. Lo insertaremos.");
@@ -403,11 +495,13 @@ function actGasto(cant){
     app.router.back();
    }
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 
 function borrarGasto(cant){
+ if(!navigator.onLine)
+ notificationFullborrar.open();
  var valorGasto = $('#gasto').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -418,7 +512,7 @@ function borrarGasto(cant){
  }else{
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var AñoGasto = AñoGastoMes.substr(0, (AñoGastoMes.length)-2);
-  app.preloader.show();
+  //app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     refGasto.child(AñoGastoMes).remove();
@@ -429,16 +523,19 @@ function borrarGasto(cant){
      return loquehay - cant;
     });
     actualizarZGastos(cant);
+    app.router.navigate('/');
    }else{
     console.log("El gasto " + AñoGastoMes + " no se borró. No existía.");
     toastIconError.open();
    }
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 
 function insGasto(){
+ if(!navigator.onLine)
+ notificationFullinsGasto.open();
  var valorGasto = $('#gasto').val();
  var valorAño = $('#año').val();
  var valorMes = $('#mes').val();
@@ -451,7 +548,7 @@ function insGasto(){
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var cant = parseInt(valorCantidad, 10);
   console.log(AñoGastoMes + ":" + cant);
-  app.preloader.show();
+  //app.preloader.show();
   refGasto.child(AñoGastoMes).once('value', function(snapshot) {
    if (snapshot.exists()) {
     console.log("El gasto " + AñoGastoMes + " ya exite. Actualízalo mejor.");
@@ -475,8 +572,9 @@ function insGasto(){
     });
    actualizarZGastos(cant, true);
    }
+   app.router.navigate('/');
   });
-  app.preloader.hide();
+  //app.preloader.hide();
  }
 }
 // Fin gastos
@@ -486,7 +584,7 @@ function actVecino(vecino, password){
  var password = $('#password').val();
  console.log("recibo: "+ vecino +" "+ password);
   console.log(vecino + ":" + password);
-  app.preloader.show();
+  //app.preloader.show();
   refVecinos.child(vecino+"Pass").once('value', function(snapshot) {
    if (snapshot.exists()) {
     refVecinos.update({
@@ -502,14 +600,14 @@ function actVecino(vecino, password){
     app.router.back();
    }
   });
-  app.preloader.hide();
+  //app.preloader.hide();
 }
 
 // Vinculos
 function insVinculo(clave, valor){
   var clave = clave.substr(0, clave.indexOf("."));
   console.log(clave, valor);
-  app.preloader.show();
+  //app.preloader.show();
   refVinculos.child(clave).once('value', function(snapshot) {
     console.log("El vinculo " + clave + " no existe. Lo insertaremos.");
     refVinculos.update({
@@ -523,11 +621,15 @@ function insVinculo(clave, valor){
      }
     });
   });
-  app.preloader.hide();
+  //app.preloader.hide();
 }
 
 // borrarDocumento
 function borrarDocumento(clave){
+ if(!navigator.onLine){
+  notificationFullrestringido.open();
+  return;
+ }
  var archivoStore = 'micarpeta/'+clave.substr(clave.indexOf("%2F")+3, clave.indexOf("?")-3);
  var archivoStoreSin = archivoStore.replace(/%20/g, " ");
  var archivoVinculado = clave.substr(clave.indexOf("%2F")+3, clave.indexOf(".")-3);
@@ -537,7 +639,7 @@ function borrarDocumento(clave){
  var refStorage = storage.ref();
  // Create a reference to the file to delete
  var refDesert = refStorage.child(archivoStoreSin);
- app.preloader.show();
+ //app.preloader.show();
  refDesert.delete().then(function() {
   console.log("documento borrado satisfactoriamente");
  }).catch(function(error) {
@@ -553,7 +655,7 @@ function borrarDocumento(clave){
    toastIconError.open();
   }
  });
- app.preloader.hide();
+ //app.preloader.hide();
  //app.dialog.alert('Gracias, item borrado! '+archivoVinculadoSin);
 }
 
@@ -580,4 +682,68 @@ var toastIconBorrado = app.toast.create({
   text: 'Borrado',
   position: 'center',
   closeTimeout: 2000,
+});
+// Create notification with close button
+var notificationFulldesconectado = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Posiblemente datos no actualizados',
+  closeTimeout: 3000,
+});
+var notificationFullconectado = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Vuelves a estar conectado!',
+  text: 'Los datos volverán a actualizarse',
+  closeTimeout: 3000,
+});
+var notificationFullinsIngreso = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Ingreso pendiente hasta estar conectado',
+  closeTimeout: 3000,
+});
+var notificationFullborrar = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Borrado pendiente hasta estar conectado',
+  closeTimeout: 3000,
+});
+var notificationFullinsGasto = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Gasto pendiente hasta estar conectado',
+  closeTimeout: 3000,
+});
+var notificationFullmodificar = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Modificación pendiente hasta estar conectado',
+  closeTimeout: 3000,
+});
+var notificationFullrestringido = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'Operación sólo disponible cuando estés conectado',
+  closeTimeout: 3000,
+});
+var notificationFullDocumentos = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'No podrás descargar documentos hasta estar conectado',
+  closeTimeout: 3000,
+});
+var notificationFullSettingsGastos = app.notification.create({
+  icon: '<i class="icon icon-f7"></i>',
+  title: 'Comunidad',
+  subtitle: '¡Estás desconectado!',
+  text: 'No podrás modificar gastos hasta estar conectado',
+  closeTimeout: 3000,
 });

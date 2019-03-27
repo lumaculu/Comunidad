@@ -1,0 +1,23 @@
+{
+  "m1547724191912001" : "Notificación desde el Pc",
+  "m1547724233426001" : "Notificación desde el móvil",
+  "m1547724675208002" : "Notificación del vecino 002",
+  "m1547726411772003" : "Notificación del vecino 003",
+  "m1547780879677001" : "Notificación desde Android",
+  "m1547983723273001" : "Notificación con framework nuevo",
+  "m1547983993501002" : "Nota nueva del 002",
+  "m1547990423021003" : "Nota de nueva del 003",
+  "m1548088233945001" : "Hola que tal?",
+  "m1548162844058002" : "Hola feliz dia",
+  "m1548182461517003" : "¿Como estáis?",
+  "m1548238583872001" : "Empieza otro dia",
+  "m1549191355005002" : "Hoy escribo algo",
+  "m1549191946070001" : "Respondo con algo",
+  "m1549482207882002" : "El vecino 003 saluda",
+  "m1549630744194003" : "Luz de la escalera fundida",
+ "vLeeme" : "https://firebasestorage.googleapis.com/v0/b/comunidad-690a0.appspot.com/o/micarpeta%2FLeeme.txt?alt=media&token=22678c03-2c30-4749-ab70-bf4ee1ce714b",
+ "vLeer" : "https://firebasestorage.googleapis.com/v0/b/comunidad-690a0.appspot.com/o/micarpeta%2FLeer.txt?alt=media&token=ae36d869-ac2d-4eaf-b649-a3ae8da723b4",
+ "ZGastos" : 340,
+ "ZIngresos" : 240,
+ "ZSaldo" : -160
+}
