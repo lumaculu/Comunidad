@@ -186,12 +186,24 @@ function datosIniciales(){
   });
   refVecinos.on("value", function(data){
    modificarTabladeIndexedDB('Vecinos');
-   data.forEach(function(child){
-    var clave = child.key;
-    var valor = child.val();
-    console.log(clave + ": " + valor);
-    añadeDatosaIndexedDB('Vecinos', {clave, valor});
-   });
+   if(app.acceso){
+    data.forEach(function(child){
+     var clave = child.key;
+     var valor = child.val();
+     console.log(clave + ": " + valor);
+     añadeDatosaIndexedDB('Vecinos', {clave, valor});
+    });
+   }else{
+    data.forEach(function(child){
+     var clave = child.key;
+     var valor = child.val();
+     console.log(clave + ": " + valor);
+     if(!clave.startsWith("0") && !clave.startsWith("1"))
+     añadeDatosaIndexedDB('Vecinos', {clave, valor});
+     if(clave == localStorage.vecino+"Pass")
+     añadeDatosaIndexedDB('Vecinos', {clave, valor});
+    });
+   }
   }, function (errorObject) {
     console.log("Fallo leyendo: " + errorObject.code);
   });
@@ -350,9 +362,9 @@ function insIngreso(){
  var valorMes = $('#mes').val();
  switch (valorMes) {case "Ene": valorMes="01"; break; case "Feb": valorMes="02"; break; case "Mar": valorMes="03"; break; case "Abr": valorMes="04"; break; case "May": valorMes="05"; break; case "Jun": valorMes="06"; break; case "Jul": valorMes="07"; break; case "Ago": valorMes="08"; break; case "Sep": valorMes="09"; break; case "Oct": valorMes="10"; break; case "Nov": valorMes="11"; break; case "Dic": valorMes="12"; break;}
  var valorCantidad = $('#cantidad').val();
- if (!$('#vecino')[0].checkValidity() || !año.checkValidity() || !mes.checkValidity() || !cantidad.checkValidity()) {
-  console.log("Rellena todo tito");
-  toastIconError.open();
+ //if (!$('#vecino')[0].checkValidity() || !$('#año')[0].checkValidity() || !$('#mes')[0].checkValidity() || !$('#cantidad')[0].checkValidity()) {
+ if(valorVecino == "" || valorAño == "" || valorMes == "" || valorCantidad == ""){
+  app.dialog.alert("¡Rellena todo!");
  }else{
   var AñoVecinoMes = valorAño+valorVecino+valorMes;
   var cant = parseInt(valorCantidad, 10);
@@ -541,9 +553,9 @@ function insGasto(){
  var valorMes = $('#mes').val();
  switch (valorMes) {case "Ene": valorMes="01"; break; case "Feb": valorMes="02"; break; case "Mar": valorMes="03"; break; case "Abr": valorMes="04"; break; case "May": valorMes="05"; break; case "Jun": valorMes="06"; break; case "Jul": valorMes="07"; break; case "Ago": valorMes="08"; break; case "Sep": valorMes="09"; break; case "Oct": valorMes="10"; break; case "Nov": valorMes="11"; break; case "Dic": valorMes="12"; break;}
  var valorCantidad = $('#cantidad').val();
- if (!gasto.checkValidity() || !año.checkValidity() || !mes.checkValidity() || !cantidad.checkValidity()) {
-  console.log("Rellena todo tito");
-  toastIconError.open();
+ //if (!gasto.checkValidity() || !año.checkValidity() || !mes.checkValidity() || !cantidad.checkValidity()) {
+ if(valorGasto == "" || valorAño == "" || valorMes == "" || valorCantidad == ""){
+  app.dialog.alert("¡Rellena todo!");
  }else{
   var AñoGastoMes = valorAño+valorGasto+valorMes;
   var cant = parseInt(valorCantidad, 10);
@@ -600,7 +612,46 @@ function actVecino(vecino, password){
     app.router.back();
    }
   });
+  /*refVecinos.child(vecino+"Acc").once('value', function(snapshot) {
+   if (snapshot.exists()) {
+    refVecinos.update({
+    [vecino+"Acc"]: acceso}, function(error){
+    if(error){
+     console.log("Error Insertando/Actualizando");
+     toastIconError.open();
+    }else{
+     console.log("Insertado/Actualizado correctamente");
+     toastIconActualizado.open();
+    }
+    });
+    app.router.back();
+   }
+ });*/
   //app.preloader.hide();
+}
+function actAcceso(vecino, acceso){
+ app.dialog.confirm('¿Cambiar el acceso, seguro?', 'Aviso Importante', function () {
+  refVecinos.child(vecino+"Acc").once('value', function(snapshot) {
+   if (snapshot.exists()) {
+    refVecinos.update({
+    [vecino+"Acc"]: acceso}, function(error){
+    if(error){
+     console.log("Error Insertando/Actualizando");
+     toastIconError.open();
+    }else{
+     console.log("Insertado/Actualizado correctamente");
+     toastIconActualizado.open();
+    }
+    });
+   }
+ });
+ }, function(){
+   if($('#acceso'+vecino).is(":checked")){
+    $('#acceso'+vecino).prop('checked', false);
+   }else{
+    $('#acceso'+vecino).prop('checked', true);
+   }
+ })
 }
 
 // Vinculos

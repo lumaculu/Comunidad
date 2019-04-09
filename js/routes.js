@@ -120,7 +120,7 @@ var routes = [
          }
         });
       }
-       if(Framework7.device.webView){
+       if(!Framework7.device.webView){
          console.log('No está añadida a la pantalla de inicio');
          $('.page').html('');
          $('.page').addClass('instalar').append('<div id="logo"><h2 id="añadir"><strong>Desarrollo de aplicaciones móviles</strong></h2></div><div id="icono"><h2 id="añadir"><strong>Comunidad</strong><br>Añádela a tu<br><strong>Pantalla de Inicio</strong></h2></div></div>');
@@ -460,7 +460,7 @@ var routes = [
          }
         }
       });
-     }
+    }
 
     //app.preloader.show();
     var id = page.route.params.index;
@@ -507,20 +507,6 @@ var routes = [
   url: './pages/actualizarIngreso.html',
   on: {
    pageInit: function (e, page) {
-    if(!navigator.onLine){
-     obtenResultadodeIndexedDB('Vecinos').then(function(Vecinos){
-      for (var i = 0; i < Object.keys(Vecinos).length; i++){
-       var todo = Object.values(Vecinos[i]).toString();
-       console.log(todo);
-       var claveAñoVecinoMesValor = page.route.params.index;
-       console.log(claveAñoVecinoMesValor);
-       if(todo.startsWith(claveAñoVecinoMesValor)){
-
-       }
-      }
-     })
-    }
-
     var id = page.route.params.index;
     var valorVecino = id.substr(4, 3);
     $('#vecino').val(valorVecino);
@@ -555,9 +541,6 @@ var routes = [
   url: './pages/insertarIngreso.html',
   on: {
    pageInit: function (e, page) {
-     /*refSettings.child('Años').on("value", function(data){
-         valor = data.val().split(',');
-         console.log(valor);*/
          self.pickerDevice = app.picker.create({
            inputEl: '#vecino',
            cols: [
@@ -586,7 +569,6 @@ var routes = [
              }
            ]
          });
-     //})
     $('.insertarIngreso').on('click', function() {
      if(!navigator.onLine){
       notificationFullrestringido.open();
@@ -966,7 +948,39 @@ var routes = [
   url: './pages/settings.html',
   on: {
     pageInit: function (e, page) {
-      //app.preloader.show();
+      if(!navigator.onLine){
+       notificationFulldesconectado.open();
+       obtenResultadodeIndexedDB('Settings').then(function(Gastos){
+         for(var i = 0; i < Object.keys(Gastos).length; i++){
+           var todo = Object.values(Gastos[i]).toString();
+           if(todo.startsWith("Gastos")){
+             var valor = todo.substr(todo.indexOf(',')+1);
+             var gastos = valor.split(',');
+             $('.gastos').text(gastos);
+           }
+           if(todo.startsWith("Saldo")){
+             var valor = todo.substr(todo.indexOf(',')+1);
+             var saldo = valor.split(',');
+             $('.saldo').text(saldo);
+             var saldoAnterior = $('.saldoAnterior a');
+             console.log(saldoAnterior);
+             saldoAnterior.attr({
+              href: '/saldoAnterior/'+saldo+'/'
+             })
+           }
+           if(todo.startsWith("Años")){
+             var valor = todo.substr(todo.indexOf(',')+1);
+             var años = valor.split(',');
+             $('.años').text(años);
+             var verAños = $('.verAños a');
+             console.log(verAños);
+             verAños.attr({
+              href: '/verAños/'+años+'/'
+             })
+           }
+         }
+       })
+      }else{
       refSettings.child('Gastos').on("value", function(data){
         console.log(data.val());
         if(data.val() == null){
@@ -997,7 +1011,7 @@ var routes = [
            href: '/verAños/'+años+'/'
           })
       })
-      //app.preloader.hide();
+      } // fin else
 
       rootComunidad.once("value", function(comunidad){
        var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comunidad));
@@ -1240,9 +1254,63 @@ var routes = [
   url: './pages/vecinos.html',
   on: {
    pageInit: function (e, page) {
+    if(!navigator.onLine){
+     notificationFulldesconectado.open();
+      obtenResultadodeIndexedDB('Vecinos').then(function(Vecinos){
+        for(var i = 0; i < Object.keys(Vecinos).length; i++){
+          var todo = Object.values(Vecinos[i]).toString();
+          if(todo.startsWith("0") || todo.startsWith("1")){
+            var valor = todo.substr(todo.indexOf(',')+1);
+            var claveVecino = todo.substr(0, 3);
+            console.log(vecino+': '+valor);
+         if(!app.acceso){
+            var vecino = localStorage.getItem("vecino");
+            if(todo.startsWith(localStorage.getItem("vecino")+"Pass")){
+            switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
+            $('#vecinos').append(
+            "<li>"+
+            "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
+            "<div class='item-inner'>"+
+            "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
+            "</div>"+
+            "<div class='item-after'>"+vecino+"</div>"+
+            "</div>"+
+            "</a>"+
+            "</li>");
+            }
+          }else{
+            switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
+            if(todo.startsWith("001Pass")){
+             $('#vecinos').append(
+             "<li>"+
+             "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
+             "<div class='item-inner'>"+
+             "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
+             "</div>"+
+             "<div class='item-after'>"+vecino+"</div>"+
+             "</div>"+
+             "</a>"+
+             "</li>");
+             //clave != claveVecino+"Acc"
+            }else if(valor != 0 && claveVecino != "001"){
+             $('#vecinos').append(
+             "<li class='item-content'>"+
+             "<div class='item-inner'>"+
+             "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
+             "</div>"+
+             "<div class='item-after'>"+vecino+"</div>"+
+             "</div>"+
+             "</li>");
+            }
+          }
+         }
+        }
+      });
+    }else{
     if(!app.acceso){
       console.log(localStorage.getItem("vecino"));
       var vecino = localStorage.getItem("vecino");
+      var acceso = localStorage.getItem("acceso");
       //app.preloader.show();
       refVecinos.orderByKey().startAt(vecino+"Pass").endAt(vecino+"Pass").on("value", function(data){
        $('#vecinos').html('');
@@ -1254,7 +1322,7 @@ var routes = [
         if(clave != claveVecino+"Acc"){
          $('#vecinos').append(
          "<li>"+
-         "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
+         "<a href='/actualizarVecino/"+claveVecino+valor+':'+acceso+"/' class='item-link item-content link'>"+
          "<div class='item-inner'>"+
          "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
          "</div>"+
@@ -1270,21 +1338,34 @@ var routes = [
       });
     }else{
     //app.preloader.show();
+    var acceso = localStorage.getItem("acceso");
     refVecinos.orderByKey().startAt("001Acc").endAt("114Pass").on("value", function(data){
      $('#vecinos').html('');
      data.forEach(function(child){
       var clave = child.key;
       var valor = child.val();
       var claveVecino = clave.substr(0, 3);
+      var claveAcceso = clave.substr(3, 3);
+      if(claveAcceso.startsWith("Acc")){
+       valorAcceso = valor;
+       if(valorAcceso){
+        derechos = "Administrador";
+        tito = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 0)" checked id="acceso'+claveVecino+'">';
+       }else{
+        derechos = "Usuario";
+        tito = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 1)" id="acceso'+claveVecino+'">';
+       }
+       console.log(claveAcceso+'-'+valor);
+      }
       switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
       if(clave == "001Pass"){
        $('#vecinos').append(
        "<li>"+
        "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
        "<div class='item-inner'>"+
-       "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
+       "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+vecino+" - Acceso: "+derechos+"</div>"+
        "</div>"+
-       "<div class='item-after'>"+vecino+"</div>"+
+       "<div class='item-after'></div>"+
        "</div>"+
        "</a>"+
        "</li>");
@@ -1292,18 +1373,24 @@ var routes = [
        $('#vecinos').append(
        "<li class='item-content'>"+
        "<div class='item-inner'>"+
-       "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
+       "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+vecino+" - Acceso: "+derechos+"</div>"+
        "</div>"+
-       "<div class='item-after'>"+vecino+"</div>"+
+       //"<div class='item-after'>"+vecino+"</div>"+
+       "<div class='item-after'>"+
+       "<label class='toggle toggle-init'>"+tito+
+       //"<input type='checkbox' id='acceso"+claveVecino+"'>"+
+       "<span class='toggle-icon'></span>"+
+       "</label>"+
+       "</div>"+
        "</div>"+
        "</li>");
       }
      });
-     //app.preloader.hide();
     }, function (errorObject) {
      console.log("Fallo leyendo: " + errorObject.code);
     });
    }
+ } // fin else if navigator onLine
    },
   }
   },
@@ -1525,7 +1612,7 @@ var routes = [
       }, function (errorObject) {
        console.log("Fallo leyendo: " + errorObject.code);
       });
-    }//fin del else
+     }//fin del else
     }
   }
   },
@@ -1573,7 +1660,7 @@ on:{
      });
     }
    });
-  }else{
+ }else{
    refMensajes.on("value", function(data){
     $('.messages').html('');
     var ultimaFecha;
