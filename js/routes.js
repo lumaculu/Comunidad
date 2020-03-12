@@ -1,5 +1,8 @@
+var VERSION_APP = 2;
 var DB_VERSION = 1;// borrar desde aqui
 var DB_NAME = "Basedatos";
+DATOS_INICIALES = false;
+DATOS_INICIO = false;
 
 var abreBasedatosdeIndexedDB = function(){
  return new Promise(function(resolve, reject){
@@ -58,7 +61,29 @@ var añadeDatosaIndexedDB = function(storeName, object){
  });
 };
 
-var modificarTabladeIndexedDB = function(storeName){
+var modificarTablaenIndexedDB = function(storeName, object){
+ return new Promise(function(resolve){
+  abreBasedatosdeIndexedDB().then(function(db){
+   var objectStore = abreDatosdeIndexedDB(db, storeName, "readwrite");
+   objectStore.openCursor().onsuccess = function(event){
+    var cursor = event.target.result;
+    if (cursor){
+      object.forEach(function(child){
+       var clave = child.key;
+       var valor = child.val();
+      if(clave == cursor.value.clave)
+       cursor.update({clave, valor});
+      })
+     cursor.continue();
+    }
+   };
+  }).catch(function(){
+    console.log('Fallo yendo a por los '+storeName);
+  });
+ });
+};
+
+var borrarTabladeIndexedDB = function(storeName){
  return new Promise(function(resolve, reject){
   abreBasedatosdeIndexedDB().then(function(db){
    abreDatosdeIndexedDB(db, storeName, "readwrite").clear()
@@ -81,6 +106,10 @@ var obtenResultadodeIndexedDB = function(storeName){
      cursor.continue();
     }else{
      if (resultado.length > 0){
+      resolve(resultado);
+     }else{
+      console.log("No hay datos");
+      resultado.push(0);
       resolve(resultado);
      }
     }
@@ -120,15 +149,37 @@ var routes = [
          }
         });
       }
-       if(!Framework7.device.webView){
+       /*if(Framework7.device.webView){
          console.log('No está añadida a la pantalla de inicio');
          $('.page').html('');
          $('.page').addClass('instalar').append('<div id="logo"><h2 id="añadir"><strong>Desarrollo de aplicaciones móviles</strong></h2></div><div id="icono"><h2 id="añadir"><strong>Comunidad</strong><br>Añádela a tu<br><strong>Pantalla de Inicio</strong></h2></div></div>');
        }else{
-         console.log('Añadida a pantalla de inicio');
+         console.log('Añadida a pantalla de inicio');*/
        /* Cerrar Pantalla de Login si ya nos conectamos */
        firebase.auth().onAuthStateChanged(function(user) {
         if (user && localStorage.vecino) {
+         if (!DATOS_INICIALES){
+          datosInicio();
+         }else{
+          refComunidad.orderByKey().startAt("Z").on("value", function(data){
+           var ZIngresos = data.val().ZIngresos;
+           var ZGastos = data.val().ZGastos;
+           var ZSaldo = data.val().ZSaldo;
+           $('#totalIngresos').text(ZIngresos+"€");
+           $('#totalGastos').text(ZGastos+"€");
+           $('#saldo').text(ZSaldo+"€");
+          });
+          refSettings.child('Años').on("value", function(data){
+           app.Años = data.val().split(',');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+          refSettings.child('Saldo').on("value", function(data){
+           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
+          }, function (errorObject) {
+            console.log("Fallo leyendo: " + errorObject.code);
+          });
+         }
          if(localStorage.acceso == 'true'){
           app.acceso = true;
           console.log("Acceso: Administrador");
@@ -150,37 +201,58 @@ var routes = [
           vecinos.attr({
             href: '/settings/'
           })
-          //datosIniciales();
-          refComunidad.orderByKey().startAt("Z").on("value", function(data){
-           //modificarTabladeIndexedDB('Inicio');
-           data.forEach(function(child){
-            var clave = child.key;
-            var valor = child.val();
-            añadeDatosaIndexedDB('Inicio', {clave, valor});
-            if(clave == "ZIngresos"){
-             $('#totalIngresos').text(valor+"€");
-            }else if(clave == "ZGastos"){
-             $('#totalGastos').text(valor+"€");
-            }else if(clave == "ZSaldo"){
-             $('#saldo').text(valor+"€");
+          /*refComunidad.orderByKey().startAt("Z").on("value", function(data){
+           obtenResultadodeIndexedDB('Inicio').then(function(Inicio){
+            var ZIngresos = data.val().ZIngresos;
+            var ZGastos = data.val().ZGastos;
+            var ZSaldo = data.val().ZSaldo;
+            $('#totalIngresos').text(ZIngresos+"€");
+            $('#totalGastos').text(ZGastos+"€");
+            $('#saldo').text(ZSaldo+"€");
+            var gastosIndexedDB = Object.values(Inicio[0]).toString().substr(8);
+            var ingresosIndexedDB = Object.values(Inicio[1]).toString().substr(10);
+            if(data.val().ZGastos != gastosIndexedDB || data.val().ZIngresos != ingresosIndexedDB){
+             console.log("Los ingresos o gastos han cambiado");
+             modificarTablaenIndexedDB("Inicio", data);
+            }else{
+             console.log("Los ingresos o gastos son los mismos");
             }
-            console.log(clave + ": " + valor);
-           });
-           //app.preloader.hide();
+           })
           }, function (errorObject) {
             console.log("Fallo leyendo: " + errorObject.code);
           });
-          refSettings.child('Años').on("value", function(data){
-           app.Años = data.val().split(',');
+          refSettings.on("value", function(data){
+           obtenResultadodeIndexedDB('Settings').then(function(Settings){
+           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val().Saldo + '€)');
+           app.Años = data.val().Años.split(',');
+           var añosIndexedDB = Object.values(Settings[0]).toString().substr(5);
+           console.log(añosIndexedDB);
+           if(data.val().Años != añosIndexedDB){
+            console.log("Los años a mostrar han cambiado");
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("Los años a mostrar son los mismos");
+           }
+           var gastosIndexedDB = Object.values(Settings[1]).toString().substr(7);
+           console.log(gastosIndexedDB);
+           if(data.val().Gastos != gastosIndexedDB){
+            console.log("Los gastos a mostrar han cambiado");
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("Los gastos a mostrar son los mismos");
+           }
+           var saldoIndexedDB = Object.values(Settings[2]).toString().substr(6);
+           console.log(saldoIndexedDB);
+           if(data.val().Saldo != saldoIndexedDB){
+            console.log("El saldo del año anterior ha cambiado, era: "+saldoIndexedDB+" ahora es igual a: "+data.val().Saldo);
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("El saldo del año anterior es el mismo");
+           }
+          })
           }, function (errorObject) {
             console.log("Fallo leyendo: " + errorObject.code);
-          });
-          refSettings.child('Saldo').on("value", function(data){
-           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
-          }, function (errorObject) {
-            console.log("Fallo leyendo: " + errorObject.code);
-          });
-          // fin datosIniciales
+          });*/
          }else{
           console.log("Acceso: Usuario");
           $('.quitar').hide();
@@ -192,43 +264,117 @@ var routes = [
           vecinos.attr({
             href: '/vecinos/'
           })
-          //datosIniciales();
-          refComunidad.orderByKey().startAt("Z").on("value", function(data){
-           //modificarTabladeIndexedDB('Inicio');
-           data.forEach(function(child){
-            var clave = child.key;
-            var valor = child.val();
-            añadeDatosaIndexedDB('Inicio', {clave, valor});
-            if(clave == "ZIngresos"){
-             $('#totalIngresos').text(valor+"€");
-            }else if(clave == "ZGastos"){
-             $('#totalGastos').text(valor+"€");
-            }else if(clave == "ZSaldo"){
-             $('#saldo').text(valor+"€");
+          /*refComunidad.orderByKey().startAt("Z").on("value", function(data){
+           obtenResultadodeIndexedDB('Inicio').then(function(Inicio){
+            var ZIngresos = data.val().ZIngresos;
+            var ZGastos = data.val().ZGastos;
+            var ZSaldo = data.val().ZSaldo;
+            $('#totalIngresos').text(ZIngresos+"€");
+            $('#totalGastos').text(ZGastos+"€");
+            $('#saldo').text(ZSaldo+"€");
+            var gastosIndexedDB = Object.values(Inicio[0]).toString().substr(8);
+            var ingresosIndexedDB = Object.values(Inicio[1]).toString().substr(10);
+            if(data.val().ZGastos != gastosIndexedDB || data.val().ZIngresos != ingresosIndexedDB){
+             console.log("Los ingresos o gastos han cambiado");
+             modificarTablaenIndexedDB("Inicio", data);
+            }else{
+             console.log("Los ingresos o gastos son los mismos");
             }
-            console.log(clave + ": " + valor);
-           });
-           //app.preloader.hide();
+           })
           }, function (errorObject) {
             console.log("Fallo leyendo: " + errorObject.code);
           });
-          refSettings.child('Años').on("value", function(data){
-           app.Años = data.val().split(',');
+          refSettings.on("value", function(data){
+           obtenResultadodeIndexedDB('Settings').then(function(Settings){
+           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val().Saldo + '€)');
+           app.Años = data.val().Años.split(',');
+           var añosIndexedDB = Object.values(Settings[0]).toString().substr(5);
+           console.log(añosIndexedDB);
+           if(data.val().Años != añosIndexedDB){
+            console.log("Los años a mostrar han cambiado");
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("Los años a mostrar son los mismos");
+           }
+           var gastosIndexedDB = Object.values(Settings[1]).toString().substr(7);
+           console.log(gastosIndexedDB);
+           if(data.val().Gastos != gastosIndexedDB){
+            console.log("Los gastos a mostrar han cambiado");
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("Los gastos a mostrar son los mismos");
+           }
+           var saldoIndexedDB = Object.values(Settings[2]).toString().substr(6);
+           console.log(saldoIndexedDB);
+           if(data.val().Saldo != saldoIndexedDB){
+            console.log("El saldo del año anterior ha cambiado, era: "+saldoIndexedDB+" ahora es igual a: "+data.val().Saldo);
+            modificarTablaenIndexedDB("Settings", data);
+           }else{
+            console.log("El saldo del año anterior es el mismo");
+           }
+          })
           }, function (errorObject) {
             console.log("Fallo leyendo: " + errorObject.code);
-          });
-          refSettings.child('Saldo').on("value", function(data){
-           $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val() + '€)');
-          }, function (errorObject) {
-            console.log("Fallo leyendo: " + errorObject.code);
-          });
-          // fin datosIniciales
+          });*/
          }
          app.loginScreen.close();
         }
+
+        /*refComunidad.orderByKey().startAt("Z").on("value", function(data){
+         obtenResultadodeIndexedDB('Inicio').then(function(Inicio){
+          var ZIngresos = data.val().ZIngresos;
+          var ZGastos = data.val().ZGastos;
+          var ZSaldo = data.val().ZSaldo;
+          $('#totalIngresos').text(ZIngresos+"€");
+          $('#totalGastos').text(ZGastos+"€");
+          $('#saldo').text(ZSaldo+"€");
+          var gastosIndexedDB = Object.values(Inicio[0]).toString().substr(8);
+          var ingresosIndexedDB = Object.values(Inicio[1]).toString().substr(10);
+          if(data.val().ZGastos != gastosIndexedDB || data.val().ZIngresos != ingresosIndexedDB){
+           console.log("Los ingresos o gastos han cambiado");
+           modificarTablaenIndexedDB("Inicio", data);
+          }else{
+           console.log("Los ingresos o gastos son los mismos");
+          }
+         })
+        }, function (errorObject) {
+          console.log("Fallo leyendo (probablemente no estás logeado): " + errorObject.code);
+        });
+        refSettings.on("value", function(data){
+         obtenResultadodeIndexedDB('Settings').then(function(Settings){
+         $('.card-footer.centrado').text('Ingresos - Gastos + Año anterior (' + data.val().Saldo + '€)');
+         app.Años = data.val().Años.split(',');
+         var añosIndexedDB = Object.values(Settings[0]).toString().substr(5);
+         console.log(añosIndexedDB);
+         if(data.val().Años != añosIndexedDB){
+          console.log("Los años a mostrar han cambiado");
+          modificarTablaenIndexedDB("Settings", data);
+         }else{
+          console.log("Los años a mostrar son los mismos");
+         }
+         var gastosIndexedDB = Object.values(Settings[1]).toString().substr(7);
+         console.log(gastosIndexedDB);
+         if(data.val().Gastos != gastosIndexedDB){
+          console.log("Los gastos a mostrar han cambiado");
+          modificarTablaenIndexedDB("Settings", data);
+         }else{
+          console.log("Los gastos a mostrar son los mismos");
+         }
+         var saldoIndexedDB = Object.values(Settings[2]).toString().substr(6);
+         console.log(saldoIndexedDB);
+         if(data.val().Saldo != saldoIndexedDB){
+          console.log("El saldo del año anterior ha cambiado, era: "+saldoIndexedDB+" ahora es igual a: "+data.val().Saldo);
+          modificarTablaenIndexedDB("Settings", data);
+         }else{
+          console.log("El saldo del año anterior es el mismo");
+         }
+        })
+        }, function (errorObject) {
+          console.log("Fallo leyendo (probablemente no estás logeado): " + errorObject.code);
+        });*/
+
         $('.login-screen .page-content').css('visibility', 'visible');
        });
-      }
      }
    }
   },
@@ -274,6 +420,7 @@ var routes = [
             "<div class='item-after'>"+vecino+"</div>"+
             "</div>"+
             "</a>"+
+            "<div class='sortable-handler'></div>"+
             "</li>");
              if(claveAño == app.Años[2]){
               valorUltimo = momentaneo[2];
@@ -319,9 +466,9 @@ var routes = [
           $('#popover-ingresos').html('');
           $('#popover-ingresos').append(
             '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[0]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[1]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[2]+'€</a></li>');
          });
          if(!totalCuotas){
           $('.list.ingresos').remove();
@@ -353,6 +500,7 @@ var routes = [
          "<div class='item-after'>"+vecino+"</div>"+
          "</div>"+
          "</a>"+
+         "<div class='sortable-handler'></div>"+
          "</li>");
          //for (var i = app.Años.length-1; i >= 0; i--) {
          if(claveAño == app.Años[2]){
@@ -401,9 +549,9 @@ var routes = [
         $('#popover-ingresos').html('');
         $('#popover-ingresos').append(
           '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalCuotas){
         $('.list.ingresos').remove();
@@ -619,6 +767,7 @@ var routes = [
             "<div class='item-after'>"+todo.slice(9, todo.lastIndexOf(','))+"</div>"+
             "</div>"+
             "</a>"+
+            "<div class='sortable-handler'></div>"+
             "</li>");
 
              if(claveAño == app.Años[0]){
@@ -701,6 +850,7 @@ var routes = [
          "<div class='item-after'>"+claveGasto+"</div>"+
          "</div>"+
          "</a>"+
+         "<div class='sortable-handler'></div>"+
          "</li>");
          for (var i = app.Años.length-1; i >= 0; i--) {
           if(claveAño == app.Años[i]){
@@ -1012,26 +1162,29 @@ var routes = [
           })
       })
       } // fin else
-
-      rootComunidad.once("value", function(comunidad){
-       var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comunidad));
+      if(Framework7.device.desktop || Framework7.device.android){
+      refGasto.once("value", function(Gasto){
+       var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(Gasto));
        var a = document.createElement('a');
        a.href = 'data:' + data;
        a.download = 'data.json';
        a.className = 'button external';
        a.innerHTML = 'descargar Base de Datos';
        $('.descargarBD').append(a);
-       console.log(comunidad);
+       console.log(Gasto);
       })
-
-      /*$('.importarBD').on('click', function() {
+      }else{
+       $("#descargarBD").remove();
+      }
+      $('#importarBD').on('click', function() {
        app.dialog.alert("tito");
-        app.request.get('js/tito.json', function (data) {
-         console.log(data);
-         var database = firebase.database();
-         database.ref().set(data);
+        app.request.get('js/data.json', function (gasto) {
+          var todo = gasto.split(',');
+          for(i=0; i<todo.length; i++){
+           console.log(todo[i]);
+          }
         });
-      });*/
+      });
 
     }
   }
@@ -1321,15 +1474,25 @@ var routes = [
         switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
         if(clave != claveVecino+"Acc"){
          $('#vecinos').append(
-         "<li>"+
-         "<a href='/actualizarVecino/"+claveVecino+valor+':'+acceso+"/' class='item-link item-content link'>"+
-         "<div class='item-inner'>"+
-         "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+claveVecino+"</div>"+
-         "</div>"+
-         "<div class='item-after'>"+vecino+"</div>"+
-         "</div>"+
-         "</a>"+
-         "</li>");
+          "<li class='item-divider'>Actualización de la App</li>"+
+          "<li>"+
+          "<a href='/actualizarApp/' class='item-link item-content'>"+
+          "<div class='item-media'><i class='icon f7-icons'>cloud_download</i></div>"+
+          "<div class='item-inner'>"+
+          "<div class='item-title'>Actualizar<div class='item-footer'></div></div>"+
+          "</div>"+
+          "</a>"+
+          "</li>"+
+          "<li class='item-divider'>Actualizar Password</li>"+
+          "<li>"+
+          "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
+          "<div class='item-inner'>"+
+          "<div class='item-title'>Password: "+valor+"<div class='item-footer'></div>"+
+          "</div>"+
+          "<div class='item-after'>"+vecino+"</div>"+
+          "</div>"+
+          "</a>"+
+          "</li>");
          }
        });
        //app.preloader.hide();
@@ -1350,10 +1513,10 @@ var routes = [
        valorAcceso = valor;
        if(valorAcceso){
         derechos = "Administrador";
-        tito = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 0)" checked id="acceso'+claveVecino+'">';
+        elCheckbox = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 0)" checked id="acceso'+claveVecino+'">';
        }else{
         derechos = "Usuario";
-        tito = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 1)" id="acceso'+claveVecino+'">';
+        elCheckbox = '<input type="checkbox" onChange="actAcceso(\''+claveVecino+'\', 1)" id="acceso'+claveVecino+'">';
        }
        console.log(claveAcceso+'-'+valor);
       }
@@ -1375,10 +1538,8 @@ var routes = [
        "<div class='item-inner'>"+
        "<div class='item-title'>Password: "+valor+"<div class='item-footer'>"+vecino+" - Acceso: "+derechos+"</div>"+
        "</div>"+
-       //"<div class='item-after'>"+vecino+"</div>"+
        "<div class='item-after'>"+
-       "<label class='toggle toggle-init'>"+tito+
-       //"<input type='checkbox' id='acceso"+claveVecino+"'>"+
+       "<label class='toggle toggle-init'>"+elCheckbox+
        "<span class='toggle-icon'></span>"+
        "</label>"+
        "</div>"+
@@ -1428,6 +1589,45 @@ var routes = [
     });
    },
   }
+  },
+  // Actualizacion de la app
+  {
+  path: '/actualizarApp/',
+  url: './pages/actualizarApp.html',
+  on:{
+   pageInit: function (e, page) {
+    refActualizarApp.on("value", function(data){
+     var valor = data.val();
+     if(app.acceso){
+      if(valor > VERSION_APP){
+       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse</span> <span class='badge color-red'>v-"+VERSION_APP+"</span>");
+      }else{
+       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada</span> <span class='badge color-green'>v-"+valor+"</span>");
+      }
+      //$('#titoAct').html('');
+      $('#titoAct').html(
+      "<div class='block-title'>Actualizar versión de la app</div>"+
+      "<div class='list no-hairlines-md'>"+
+      "<ul><li class='item-content item-input'>"+
+      "<div class='item-inner'>"+
+   	   "<div class='item-title item-label'>Versión</div>"+
+        "<div class='item-input-wrap'>"+
+         "<input type='text' placeholder='Versión ahora: "+VERSION_APP+"' id='version' required data-error-message='Escriba una versión...'>"+
+          "<span class='input-clear-button'></span>"+
+        "</div>"+
+       "</div>"+
+      "</li></ul>"+
+      "</div><button class='col button color-blue actualizarVecino' onclick='actApp()'>Actualizar</button>");
+     }else{
+      if(valor > VERSION_APP){
+       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse</span> <span class='badge color-red'>v-"+VERSION_APP+"</span>");
+      }else{
+       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada</span> <span class='badge color-green'>v-"+VERSION_APP+"</span>");
+      }
+     }
+    })
+   },
+  },
   },
   // verArchivo
   {
@@ -2227,7 +2427,12 @@ on:{
 
   // Default route (404 page). MUST BE THE LAST
   {
-    path: '(.*)',
-    url: './pages/404.html',
+   path: '(.*)',
+   url: './pages/404.html',
+   on: {
+    pageInit: function (e, page) {
+
+    }
+   }
   },
 ];
