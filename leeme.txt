@@ -1,15 +1,3 @@
-Subir aplicación al hosting de google:
-1º instalar firebase:
-   $ firebase i firebase -g // aconsejado
-   o descargar el binario e instalarlo // firebase-tools-instant-win.exe
-2º $ firebase login
-3º $ firebase projects:list
-4º $ firebase login:ci
-5º $ firebase init
-6º $ firebase use --add // para añadir alias
-7º $ firebase serve --only hosting
-8º $ firebase deploy
-Fuente: https://firebase.google.com/docs/cli?authuser=0#install-cli-windows
 ===========================================================================
 https://developers.google.com/web/ilt/pwa/caching-files-with-service-worker
 
@@ -43,7 +31,7 @@ El archivo firebase.json:
     "rules": "storage.rules"
   }
 }
-Nota: Modificarlo así o quitando la parte:
+Nota: Modificarlo asï¿½ o quitando la parte:
 "headers" : [{
      "source" : "js/routes.js",
      "headers" : [ {
@@ -53,8 +41,8 @@ Nota: Modificarlo así o quitando la parte:
     }]
 
 
-Problemas al ejecutar http-server. Solución:
-as for me, this problem about the PATH. because the sh can't find the script in specifed PATHS. 
+Problemas al ejecutar http-server. Soluciï¿½n:
+as for me, this problem about the PATH. because the sh can't find the script in specifed PATHS.
 you should add the npm global script path to your PATH variable.
 if you are using "Git Bash", run the below command.
 PATH=$PATH:/c/Users/CHANGE_WITH_YOUR_USERNAME/AppData/Roaming/npm
