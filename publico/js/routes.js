@@ -1,4 +1,4 @@
-var VERSION_APP = 3;
+var VERSION_APP = 2;
 var DB_VERSION = 1;// borrar desde aqui
 var DB_NAME = "Basedatos";
 DATOS_INICIALES = false;
@@ -197,10 +197,10 @@ var routes = [
           // con 2 navbars, una en page-previous y otra en  page-current. Esta
           // última no tiene href="/settings/" por eso al ser la segunda pongo
           // var vecinos = $('.navbar-inner a').eq(1). Investigar porqué.
-          /*var vecinos = $('.navbar-inner a').eq(1);
+          var vecinos = $('.navbar-inner a').eq(1);
           vecinos.attr({
             href: '/settings/'
-          })*/
+          })
           /*refComunidad.orderByKey().startAt("Z").on("value", function(data){
            obtenResultadodeIndexedDB('Inicio').then(function(Inicio){
             var ZIngresos = data.val().ZIngresos;
@@ -466,9 +466,9 @@ var routes = [
           $('#popover-ingresos').html('');
           $('#popover-ingresos').append(
             '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2021: '+momentaneo[0]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[1]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[2]+'€</a></li>');
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
          });
          if(!totalCuotas){
           $('.list.ingresos').remove();
@@ -549,9 +549,9 @@ var routes = [
         $('#popover-ingresos').html('');
         $('#popover-ingresos').append(
           '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2021: '+momentaneo[0]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[1]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[2]+'€</a></li>');
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2017: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalCuotas){
         $('.list.ingresos').remove();
@@ -818,9 +818,9 @@ var routes = [
          $('#popover-gastos').html('');
          $('#popover-gastos').append(
            '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2021: '+momentaneo[0]+'€</a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[1]+'€</a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[2]+'€</a></li>');
+           '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[0]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[1]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2017: '+momentaneo[2]+'€</a></li>');
         });
         if(!totalGastos){
          $('.list.gastos').remove();
@@ -898,9 +898,9 @@ var routes = [
         $('#popover-gastos').html('');
         $('#popover-gastos').append(
           '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2021: '+momentaneo[0]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[1]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[2]+'€</a></li>');
+          '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2017: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalGastos){
         $('.list.gastos').remove();
@@ -1473,50 +1473,27 @@ var routes = [
         var claveVecino = clave.substr(0, 3);
         switch (claveVecino){case "001": vecino="bajo puerta 1"; break; case "002": vecino="bajo puerta 2"; break; case "003": vecino="bajo puerta 3"; break; case "004": vecino="bajo puerta 4"; break; case "011": vecino="primero puerta 1"; break;}
         if(clave != claveVecino+"Acc"){
-         refActualizarApp.on("value", function(data){
-          var valorActualizacion = data.val();
-          if(valorActualizacion > VERSION_APP){
-           $('#vecinos').html(
-           "<li class='item-divider'>Actualización de la App</li>"+
-           "<li>"+
-           "<a href='/actualizarApp/' class='item-link item-content'>"+
-           "<div class='item-media'><i class='icon f7-icons'>cloud_download</i></div>"+
-           "<div class='item-inner'>"+
-           "<div class='item-title'>Actualizar<div class='item-footer'></div></div>"+
-           "<div class='item-after'><span class='badge color-red'>1</span></div>"+
-           "</div></a></li>"+
-           "<li class='item-divider'>Actualizar Password</li>"+
-           "<li>"+
-           "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
-           "<div class='item-inner'>"+
-           "<div class='item-title'>Password: "+valor+"<div class='item-footer'></div>"+
-           "</div>"+
-           "<div class='item-after'>"+vecino+"</div>"+
-           "</div>"+
-           "</a>"+
-           "</li>");
-          }else{
-            $('#vecinos').html(
-            "<li class='item-divider'>Actualización de la App</li>"+
-            "<li>"+
-            "<a href='/actualizarApp/' class='item-link item-content'>"+
-            "<div class='item-media'><i class='icon f7-icons'>cloud_download</i></div>"+
-            "<div class='item-inner'>"+
-            "<div class='item-title'>Actualizar<div class='item-footer'></div></div>"+
-            "</div></a></li>"+
-            "<li class='item-divider'>Actualizar Password</li>"+
-            "<li>"+
-            "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
-            "<div class='item-inner'>"+
-            "<div class='item-title'>Password: "+valor+"<div class='item-footer'></div>"+
-            "</div>"+
-            "<div class='item-after'>"+vecino+"</div>"+
-            "</div>"+
-            "</a>"+
-            "</li>");
-          }
-         });
-        }
+         $('#vecinos').append(
+          "<li class='item-divider'>Actualización de la App</li>"+
+          "<li>"+
+          "<a href='/actualizarApp/' class='item-link item-content'>"+
+          "<div class='item-media'><i class='icon f7-icons'>cloud_download</i></div>"+
+          "<div class='item-inner'>"+
+          "<div class='item-title'>Actualizar<div class='item-footer'></div></div>"+
+          "</div>"+
+          "</a>"+
+          "</li>"+
+          "<li class='item-divider'>Actualizar Password</li>"+
+          "<li>"+
+          "<a href='/actualizarVecino/"+claveVecino+valor+"/' class='item-link item-content link'>"+
+          "<div class='item-inner'>"+
+          "<div class='item-title'>Password: "+valor+"<div class='item-footer'></div>"+
+          "</div>"+
+          "<div class='item-after'>"+vecino+"</div>"+
+          "</div>"+
+          "</a>"+
+          "</li>");
+         }
        });
        //app.preloader.hide();
       }, function (errorObject) {
@@ -1623,9 +1600,9 @@ var routes = [
      var valor = data.val();
      if(app.acceso){
       if(valor > VERSION_APP){
-       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse a: </span> <span class='badge color-red'>v-"+valor+"</span>");
+       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse</span> <span class='badge color-red'>v-"+VERSION_APP+"</span>");
       }else{
-       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada a: </span> <span class='badge color-green'>v-"+VERSION_APP+"</span>");
+       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada</span> <span class='badge color-green'>v-"+valor+"</span>");
       }
       //$('#titoAct').html('');
       $('#titoAct').html(
@@ -1643,18 +1620,9 @@ var routes = [
       "</div><button class='col button color-blue actualizarVecino' onclick='actApp()'>Actualizar</button>");
      }else{
       if(valor > VERSION_APP){
-       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse a: </span> <span class='badge color-red'>v-"+valor+"</span>");
-       $('#aclaraciones').html("<div class='block-title'>Cómo actualizar la app:</div>"+
-       "<div class='block block-strong'>"+
-        "<p>1º Ve a Ajustes.<br>2º Pulsa en Safari.<br>3º Pulsa en Borrar historial y datos de sitios web.</p>"+
-        "</div>"+
-       "<div class='block-title'>Porqué es necesario hacerlo:</div>"+
-       "<div class='block block-strong'>"+
-        "<p>Esto es irremediable en iOS cuando la app está añadida a la pantalla de inicio ya que cachea la app antigua y no muestra la nueva. Cosas de Apple.</p>"+
-        "<p>Una vez hecho puedes volver a entrar y verás los cambios efectuados en la app.</p>"+
-       "</div>");
+       $('#estadoApp').html("<span class='badge color-red'>La aplicación necesita actualizarse</span> <span class='badge color-red'>v-"+VERSION_APP+"</span>");
       }else{
-       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada a: </span> <span class='badge color-green'>v-"+VERSION_APP+"</span>");
+       $('#estadoApp').html("<span class='badge color-green'>La aplicación está actualizada</span> <span class='badge color-green'>v-"+VERSION_APP+"</span>");
       }
      }
     })

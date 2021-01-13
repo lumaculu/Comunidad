@@ -1,0 +1,67 @@
+Subir aplicación al hosting de google:
+1º instalar firebase:
+   $ firebase i firebase -g // aconsejado
+   o descargar el binario e instalarlo // firebase-tools-instant-win.exe
+2º $ firebase login
+3º $ firebase projects:list
+4º $ firebase login:ci
+5º $ firebase init
+6º $ firebase use --add // para añadir alias
+7º $ firebase serve --only hosting
+8º $ firebase deploy
+Fuente: https://firebase.google.com/docs/cli?authuser=0#install-cli-windows
+===========================================================================
+https://developers.google.com/web/ilt/pwa/caching-files-with-service-worker
+
+El archivo firebase.json:
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": "/",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers" : [{
+     "source" : "js/routes.js",
+     "headers" : [ {
+      "key" : "Cache-Control",
+      "value" : "max-age=60"
+     }]
+    }]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
+Nota: Modificarlo así o quitando la parte:
+"headers" : [{
+     "source" : "js/routes.js",
+     "headers" : [ {
+      "key" : "Cache-Control",
+      "value" : "max-age=60"
+     }]
+    }]
+
+
+Problemas al ejecutar http-server. Solución:
+as for me, this problem about the PATH. because the sh can't find the script in specifed PATHS. 
+you should add the npm global script path to your PATH variable.
+if you are using "Git Bash", run the below command.
+PATH=$PATH:/c/Users/CHANGE_WITH_YOUR_USERNAME/AppData/Roaming/npm
+notice that, this is temporary. when you close the git bash, the PATH variable will be deleted.
+for the permanently, you have to create a .bashrc file in your home folder.
+run these commands on your git bash.
+cd ~
+echo PATH=\$PATH:/c/Users/CHANGE_WITH_YOUR_USERNAME/AppData/Roaming/npm >> .bashrc
+
+Fuente: https://stackoverflow.com/questions/31694646/http-server-command-not-found-after-install-in-npm

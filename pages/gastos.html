@@ -1,49 +1,67 @@
 <div class="page">
-  <div class="navbar">
-    <div class="navbar-inner sliding">
-      <div class="left">
-        <a href="#" class="link back">
-          <i class="icon icon-back"></i>
-          <span class="ios-only">Atrás</span>
-        </a>
+ <div class="navbar">
+  <div class="navbar-inner sliding">
+   <div class="left">
+    <a href="#" class="link back">
+     <i class="icon icon-back"></i>
+     <span class="ios-only">Atrás</span>
+    </a>
+   </div>
+   <div class="subnavbar">
+    <form data-search-container=".search-list" data-search-in=".item-after" class="searchbar searchbar-init">
+     <div class="searchbar-inner">
+      <div class="searchbar-input-wrap">
+       <input type="search" placeholder="Buscar"/>
+       <i class="searchbar-icon"></i>
+       <span class="input-clear-button"></span>
       </div>
-      <div class="title">Gastos</div>
-      <div class="right">
-       <a class="link popover-open" href="#" data-popover=".popover-links"><i class="icon f7-icons">info</i></a>
-      </div>
-    </div>
+      <span class="searchbar-disable-button if-not-aurora">Cancelar</span>
+     </div>
+    </form>
+   </div>
+   <div class="title">Gastos</div>
+   <div class="right">
+    <a class="link popover-open" href="#" data-popover=".popover-links"><i class="icon f7-icons">money_euro</i></a>
+    <a class="link sortable-toggle" data-sortable=".sortable"><i class="icon f7-icons">sort</i></a>
+   </div>
   </div>
-  <div class="toolbar toolbar-bottom-md tabbar tabbar-labels">
-    <div class="toolbar-inner">
-      <!--<a href="#tab-1" onclick="javascript:$('.año2018').show();$('.año2017').hide();" class="tab-link">-->
-      <a href="#tab-1" class="tab-link">
-        <i class="icon f7-icons">calendar</i>
-        <span class="tabbar-label">Año Actual</span>
-      </a>
-      <a href="#tab-2" class="tab-link">
-        <i class="icon f7-icons">calendar</i>
-        <span class="tabbar-label">Todos los Años</span>
-      </a>
-      <a href="#tab-3" class="tab-link">
-        <!--<i class="icon f7-icons color-white">calendar</i>Mirar el color del icono class="color-white"-->
-        <i class="icon f7-icons">calendar</i>
-        <span class="tabbar-label">Año Anterior</span>
-      </a>
-    </div>
+ </div>
+ <div class="toolbar tabbar-labels toolbar-bottom tabbar">
+  <div class="toolbar-inner">
+   <a href="#tab-1" class="tab-link">
+    <i class="icon f7-icons">calendar</i>
+    <span class="tabbar-label">Año Actual</span>
+   </a>
+   <a href="#tab-2" class="tab-link">
+    <i class="icon f7-icons">calendar</i>
+    <span class="tabbar-label">Todos los Años</span>
+   </a>
+   <a href="#tab-3" class="tab-link">
+    <i class="icon f7-icons">calendar</i>
+    <span class="tabbar-label">Año Anterior</span>
+   </a>
+  </div>
   </div>
   <div class="page-content gastos">
-   <div class="list gastos">
-    <ul id="gastos">
+   <div class="searchbar-backdrop"></div>
+   <div class="list simple-list searchbar-not-found">
+    <ul>
+     <li>No encontrado</li>
     </ul>
+   </div>
+   <div class="list gastos">
+    <div class="list sortable search-list searchbar-found">
+     <ul id="gastos">
+     </ul>
+    </div>
    </div>
   </div>
   <div class="popover popover-links">
-    <div class="popover-inner">
-      <div class="list">
-        <ul id="popover-gastos">
-
-        </ul>
-      </div>
+   <div class="popover-inner">
+    <div class="list">
+     <ul id="popover-gastos">
+     </ul>
     </div>
-  </div>
+   </div>
+ </div>
 </div>

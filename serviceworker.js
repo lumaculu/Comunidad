@@ -1,8 +1,9 @@
 //importScripts("js/loquesea.js");
-var CACHE_NAME = "comunidad-v1";
+var CACHE_NAME = "comunidad-v2";
 var CACHED_URLS = [
  "/index.html",
  "pages/404.html",
+ "pages/actualizarApp.html",
  "pages/actualizarGasto.html",
  "pages/actualizarIngreso.html",
  "pages/actualizarVecino.html",
@@ -23,10 +24,10 @@ var CACHED_URLS = [
  "pages/verArchivo.html",
  "pages/verGastos.html",
  "js/app.js",
- "js/framework7.js",
+ "js/framework7.bundle.js",
  "js/routes.js",
  "css/app.css",
- "css/framework7.css",
+ "css/framework7.bundle.css",
  "fonts/Framework7Icons-Regular.eot",
  "fonts/Framework7Icons-Regular.ttf",
  "fonts/Framework7Icons-Regular.woff",
@@ -48,7 +49,7 @@ self.addEventListener("install", function(event){
   caches.open(CACHE_NAME).then(function(cache){
    return cache.addAll(CACHED_URLS);
   }).then(function(){
-   console.log("SERVICEWORKER instalado");
+   //console.log("SERVICEWORKER instalado");
   })
  );
 });
@@ -57,12 +58,12 @@ self.addEventListener("fetch", function(event){
  event.respondWith(
   caches.open(CACHE_NAME).then(function(cache){
    return cache.match(event.request).then(function(cacheResponse){
-    console.log("desde el cache : " + event.request.url);
+    //console.log("desde el cache : " + event.request.url);
 	  return cacheResponse || fetch(event.request).then(function(networkResponse){
-	  console.log("desde la red: " + event.request.url);
+	  //console.log("desde la red: " + event.request.url);
      return networkResponse;
     }).catch(function(){
-	  console.log("fallo desde la red");
+	  //console.log("fallo desde la red");
 	  })
    })
   })

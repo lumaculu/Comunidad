@@ -1,4 +1,4 @@
-var VERSION_APP = 3;
+var VERSION_APP = 2;
 var DB_VERSION = 1;// borrar desde aqui
 var DB_NAME = "Basedatos";
 DATOS_INICIALES = false;
@@ -466,9 +466,9 @@ var routes = [
           $('#popover-ingresos').html('');
           $('#popover-ingresos').append(
             '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2021: '+momentaneo[0]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[1]+'€</a></li>'+
-            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[2]+'€</a></li>');
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[0]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[1]+'€</a></li>'+
+            '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[2]+'€</a></li>');
          });
          if(!totalCuotas){
           $('.list.ingresos').remove();
@@ -549,9 +549,9 @@ var routes = [
         $('#popover-ingresos').html('');
         $('#popover-ingresos').append(
           '<li><a class="list-button item-link" href="#"><b>Ingresos Últimos 3 Años:</b></a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2021: '+momentaneo[0]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[1]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[2]+'€</a></li>');
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2020: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2019: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Ingresos 2018: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalCuotas){
         $('.list.ingresos').remove();
@@ -818,9 +818,9 @@ var routes = [
          $('#popover-gastos').html('');
          $('#popover-gastos').append(
            '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2021: '+momentaneo[0]+'€</a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[1]+'€</a></li>'+
-           '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[2]+'€</a></li>');
+           '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[0]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[1]+'€</a></li>'+
+           '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[2]+'€</a></li>');
         });
         if(!totalGastos){
          $('.list.gastos').remove();
@@ -898,9 +898,9 @@ var routes = [
         $('#popover-gastos').html('');
         $('#popover-gastos').append(
           '<li><a class="list-button item-link" href="#"><b>Gastos Últimos 3 Años:</b></a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2021: '+momentaneo[0]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[1]+'€</a></li>'+
-          '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[2]+'€</a></li>');
+          '<li><a class="list-button item-link" href="#">Total Gastos 2020: '+momentaneo[0]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2019: '+momentaneo[1]+'€</a></li>'+
+          '<li><a class="list-button item-link" href="#">Total Gastos 2018: '+momentaneo[2]+'€</a></li>');
        });
        if(!totalGastos){
         $('.list.gastos').remove();
